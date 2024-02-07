@@ -11,12 +11,12 @@ export default function Home() {
     <Fragment>
       <header className="flex px-4 gap-2 items-center bg-white p-4 shadow-sm">
         <Menu />
-        <p className="font-raleway font-medium text-xl">Página inicial</p>
+        <p className="font-raleway font-medium text-xl">Serviços</p>
       </header>
 
       <section className="flex items-center mt-8 flex-wrap gap-3">
         <section className=" flex w-full max-w-lg items-center space-x-2 border-r-[1px] border-gray-400 px-6">
-          <Input type="text" className="border-gray-200" placeholder="Nome do produto ou serviço..." />
+          <Input type="text" className="border-gray-200" placeholder="Nome do serviço..." />
           <Button type="button" className=" flex gap-2">Buscar <FiSearch /></Button>
         </section>
 
