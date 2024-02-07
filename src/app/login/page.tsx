@@ -1,6 +1,6 @@
 "use client"
 
-import { Menu } from "@/components/custom/Header"
+import { HeaderMenu } from "@/components/custom/Header"
 import { Button } from "@/components/ui/button"
 import { FormControl, FormField, FormItem, FormMessage, FormLabel, Form } from "@/components/ui/form"
 import { FcGoogle } from "react-icons/fc"
@@ -11,6 +11,7 @@ import { Fragment } from "react"
 import { useForm } from "react-hook-form"
 import { FiLock } from "react-icons/fi"
 import { z } from "zod"
+import { AvatarProfile } from "@/components/custom/Avatar"
 
 const formSchema = z.object({
   email: z.string().min(1, {
@@ -27,10 +28,12 @@ export default function Login() {
 
   return (
     <Fragment>
-      <header className="flex px-4 gap-2 items-center bg-white p-4 shadow-sm">
-        <Menu />
-        <p className="font-raleway font-medium text-xl">Serviços</p>
-      </header>
+      <HeaderMenu>
+        <section className="flex justify-between items-center w-full">
+          <p className="font-raleway font-medium text-xl">Login</p>
+          <AvatarProfile />
+        </section>
+      </HeaderMenu>
 
       <section className="flex justify-center items-center h-[90vh] p-4">
         <section className="bg-white p-8 w-[500px] rounded gap-4 flex flex-col shadow-lg">

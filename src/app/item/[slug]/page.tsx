@@ -13,26 +13,44 @@ import {
 import { Button } from "@/components/ui/button";
 import { FiCopy } from "react-icons/fi";
 import { SheetButton } from "@/components/custom/Sheet";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import toast from "react-hot-toast";
 
 export default function Item() {
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(4)
 
   useEffect(() => {
     if (!api) {
       return
     }
  
-    setCount(api.scrollSnapList().length)
     setCurrent(api.selectedScrollSnap() + 1)
  
     api.on("select", () => {
       setCurrent(api.selectedScrollSnap() + 1)
     })
   }, [api])
+
+  function copyToClipboard(event: any) {
+    var temporaryElement = document.createElement('input'),
+    text = window.location.href;
+
+    document.body.appendChild(temporaryElement);
+    temporaryElement.value = text;
+    temporaryElement.select();
+    document.execCommand('copy');
+    document.body.removeChild(temporaryElement);
+
+    toast.success("Link copiado para área de transferência")
+  }
 
   return(
     <Fragment>
@@ -44,18 +62,25 @@ export default function Item() {
       <section className="md:pt-10 md:px-20">
         <Carousel setApi={setApi} className="w-full">
           <CarouselContent className="-ml-1 lg:flex lg:justify-center">
-            {Array.from({ length: 12 }).map((_, index) => (
+            {Array.from({ length: 4 }).map((_, index) => (
               <CarouselItem key={index} className="pl-1 md:basis-1/2 lg:basis-1/6">
                 <Card>
                   <CardContent>
-                    <img className="w-full h-full rounded-t-lg" src="https://acarnequeomundoprefere.com.br/uploads/media/image/frimesa-receita-hamburguer-suino_smlr.jpg" alt="Imagem de um item" />
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <img className="w-full h-full rounded-t-lg" src="https://acarnequeomundoprefere.com.br/uploads/media/image/frimesa-receita-hamburguer-suino_smlr.jpg" alt="Imagem de um item" />
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[800px]">
+                        <div className="p-2">
+                          <img className="w-full h-full rounded-t-lg" src="https://acarnequeomundoprefere.com.br/uploads/media/image/frimesa-receita-hamburguer-suino_smlr.jpg" alt="Imagem de um item" />
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </CardContent>
                 </Card>
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="hidden md:flex" />
-          <CarouselNext className="hidden md:flex" />
           <p className="font-raleway font-medium justify-center text-xl flex md:hidden">{current} - {count}</p>
         </Carousel>
       </section>
@@ -83,7 +108,7 @@ export default function Item() {
         </Accordion>
 
         <section className="pt-3 flex gap-2 items-center">
-          <Button variant="outline">
+          <Button variant="outline" onClick={(event) => copyToClipboard(event)}>
             <FiCopy />
           </Button>
 
