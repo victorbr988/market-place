@@ -54,6 +54,7 @@ export function HeaderMenu({ children, customClasses }: IHeaderMenu) {
             <DropdownMenuItem className="font-sans">
               <Link className="w-full" href="/profile">Meu perfil</Link>
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem>
               <Button className="w-full flex gap-2 justify-between h-8 text-red-800 font-sans" variant="outline">
                 Encerrar sessão
