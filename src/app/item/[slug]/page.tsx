@@ -1,9 +1,9 @@
 "use client"
 
-import { Menu } from "@/components/custom/Header";
+import { HeaderMenu } from "@/components/custom/Header";
 import { Fragment, useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 import {
   Accordion,
   AccordionContent,
@@ -21,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import toast from "react-hot-toast";
+import { AvatarProfile } from "@/components/custom/Avatar";
 
 export default function Item() {
   const [api, setApi] = useState<CarouselApi>()
@@ -54,10 +55,12 @@ export default function Item() {
 
   return(
     <Fragment>
-      <header className="flex px-4 gap-2 items-center bg-white p-4 shadow-sm">
-        <Menu />
-        <p className="font-raleway font-medium text-xl">Item</p>
-      </header>
+      <HeaderMenu customClasses="flex">
+        <section className="flex justify-between items-center w-full">
+          <p className="font-raleway font-medium text-xl">Página inicial</p>
+          <AvatarProfile />
+        </section>
+      </HeaderMenu>
 
       <section className="md:pt-10 md:px-20">
         <Carousel setApi={setApi} className="w-full">

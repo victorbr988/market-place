@@ -34,14 +34,14 @@ export function HeaderMenu({ children, customClasses }: IHeaderMenu) {
           <DropdownMenuLabel className="font-raleway">Navegar</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem className="font-sans text-md">
-              <Link onClick={() => setIsLoading(true)} className="w-full" href="/">Página inicial</Link>
+            <DropdownMenuItem className="font-sans">
+              <Link className="w-full" href="/">Página inicial</Link>
             </DropdownMenuItem>
-            <DropdownMenuItem className="font-sans text-md">
-              <Link onClick={() => setIsLoading(true)} className="w-full" href="/products">Produtos</Link>
+            <DropdownMenuItem className="font-sans">
+              <Link className="w-full" href="/products">Produtos</Link>
             </DropdownMenuItem>
-            <DropdownMenuItem className="font-sans text-md">
-              <Link onClick={() => setIsLoading(true)} className="w-full" href="/services">Serviços</Link>
+            <DropdownMenuItem className="font-sans">
+              <Link className="w-full" href="/services">Serviços</Link>
             </DropdownMenuItem>
           </DropdownMenuGroup>
           
@@ -51,6 +51,9 @@ export function HeaderMenu({ children, customClasses }: IHeaderMenu) {
           <DropdownMenuSeparator />
 
           <DropdownMenuGroup>
+            <DropdownMenuItem className="font-sans">
+              <Link className="w-full" href="/profile">Meu perfil</Link>
+            </DropdownMenuItem>
             <DropdownMenuItem>
               <Button className="w-full flex gap-2 justify-between h-8 text-red-800 font-sans" variant="outline">
                 Encerrar sessão
