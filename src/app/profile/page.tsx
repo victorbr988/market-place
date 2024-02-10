@@ -18,9 +18,16 @@ import { Button } from "@/components/ui/button"
 import { FiBell, FiEdit2 } from "react-icons/fi"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
 
 export default function Profile() {
   const [numberNotifications, setNumberNotifications] = useState<number>(0)
+  const router = useRouter()
+
+  function goToNotifications() {
+    router.push("/sellers")
+  }
+
   return (
     <Fragment>
       <HeaderMenu customClasses="flex">
@@ -71,7 +78,7 @@ export default function Profile() {
           </SheetContent>
         </Sheet>
         <section className="w-full relative flex justify-end items-center">
-          <FiBell className="h-5 w-5 mr-2" />
+          <FiBell onClick={() => goToNotifications()} className="h-5 w-5 mr-2 cursor-pointer" />
           <div className={cn("bg-red-900 absolute top-1 right-1 text-[9px] flex justify-center items-center text-white rounded-full", [
             numberNotifications > 0 ? 'h-4 w-4' : 'h-2 w-2'
           ])}>
