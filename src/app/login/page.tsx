@@ -2,7 +2,6 @@
 
 import { HeaderMenu } from "@/components/custom/Header"
 import { Button } from "@/components/ui/button"
-import { FormControl, FormField, FormItem, FormMessage, FormLabel, Form } from "@/components/ui/form"
 import { FcGoogle } from "react-icons/fc"
 import { Input } from "@/components/ui/input"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -13,6 +12,9 @@ import { FiLock } from "react-icons/fi"
 import { z } from "zod"
 import { AvatarProfile } from "@/components/custom/Avatar"
 import { Label } from "@/components/ui/label"
+import { login } from "@/axios/requests/login"
+import toast from "react-hot-toast"
+import { useRouter } from "next/navigation"
 
 const formSchema = z.object({
   email: z.string().min(1, {
@@ -33,8 +35,20 @@ export default function Login() {
     }
   })
 
-  function login(values: z.infer<typeof formSchema>) {
-    console.log(values)
+  const router = useRouter()
+
+  function loginWithCredentials(userCredentials: z.infer<typeof formSchema>) {
+    toast.promise(
+      login(userCredentials),
+      {
+        loading: "Aguardando...",
+        success: () => {
+          router.push("/")
+          return "Sessão iniciada"
+        },
+        error: "Algo deu errado"
+      }
+    )
   }
 
   return (
@@ -49,7 +63,7 @@ export default function Login() {
       <section className="flex justify-center items-center h-[85vh] p-4">
         <section className="bg-white p-8 w-[500px] rounded gap-4 flex flex-col shadow-lg mt-10">
           <form
-            onSubmit={handleSubmit(login)}
+            onSubmit={handleSubmit(loginWithCredentials)}
           >
             <section className="mb-3 flex flex-col gap-6">
               <section>
