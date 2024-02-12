@@ -7,7 +7,7 @@ interface Loading {
 
 const loadingStore = create<Loading>()((set) => ({
   isLoading: false,
-  setIsLoading: () => set((state) => ({ isLoading: state.isLoading })),
+  setIsLoading: (loading) => set((state) => ({ isLoading: loading })),
 }))
 
 export const Context = {

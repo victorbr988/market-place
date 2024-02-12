@@ -25,7 +25,6 @@ const formSchema = z.object({
   })
 })
 
-
 export default function Login() {
   const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

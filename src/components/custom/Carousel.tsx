@@ -1,3 +1,4 @@
+import { IItem, IProdutos } from "@/axios/types"
 import {
   Carousel,
   CarouselContent,
@@ -5,26 +6,42 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
-import { ReactNode } from "react"
+import { Fragment, useEffect, useState } from "react"
+import { CardItem } from "./CardItem"
 
 interface ICarouselItems {
-  children: ReactNode
+  items: IProdutos
 }
-export function CarouselItems({ children }: ICarouselItems) {
+export function CarouselItems({ items }: ICarouselItems) {
+  const [itemsCategory, setItemsCategory] = useState<string[]>([])
+
+  useEffect(() => {
+    if (items) {
+      setItemsCategory(items.categories || [])
+    }
+  })
   return (
-    <section className="p-2 px-7">
-      <p className="font-raleway font-medium text-xl text-[#64748B] w-full mb-2">Category</p>
-      <Carousel className="w-full">
-        <CarouselContent className="-ml-1">
-          {Array.from({ length: 12 }).map((_, index) => (
-            <CarouselItem key={index} className="pl-1 md:basis-1/2 lg:basis-1/6">
-              { children }
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        <CarouselPrevious />
-        <CarouselNext />
-      </Carousel>
+    <section className="p-2 px-7 flex flex-col gap-4">
+      {itemsCategory.map((category) => (
+        <Fragment>
+          <p className="font-raleway font-medium text-xl text-[#64748B] w-full mb-2">{ category }</p>
+          <Carousel className="w-full">
+            <CarouselContent className="-ml-1">
+              {items.values[category].map((item: IItem) => (
+                <CarouselItem key={ item.id } className="pl-1 md:basis-1/2 lg:basis-1/6">
+                  <section>
+                    <CardItem item={item} />
+                  </section>
+                  
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious />
+            <CarouselNext />
+          </Carousel>
+        </Fragment>
+      ))}
+      
     </section>
     
   )

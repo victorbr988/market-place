@@ -39,7 +39,7 @@ export default function Home() {
                 <Button type="button" className=" flex gap-2">Buscar <FiSearch /></Button>
               </section>
 
-              <section className="flex gap-2 overflow-x-auto md:overflow-hidden px-3 md:px-0 mt-3 md:mt-0">
+              <section className="flex gap-2 overflow-x-auto md:overflow-hidden px-3 md:px-7 mt-3 md:mt-0">
                 <Button type="button" className=" flex gap-2">Categoria 1</Button>
                 <Button type="button" className=" flex gap-2">Categoria 2</Button>
                 <Button type="button" className=" flex gap-2">Categoria 3</Button>
