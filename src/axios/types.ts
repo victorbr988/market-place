@@ -6,7 +6,7 @@ export interface IUserLogin {
 export interface IBaseGroupItems {
   produtos: IProdutos;
   servicos: IProdutos;
-  condominios?: (ICondos)[] | null;
+  condominios: ICondos;
 }
 export interface IProdutos {
   categories: string[];

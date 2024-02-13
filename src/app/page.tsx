@@ -17,6 +17,7 @@ import { IBaseGroupItems } from "@/axios/types";
 export default function Home() {
   const { isLoading, setIsLoading } = Context.loadingStore()
   const [items, setItems] = useState<IBaseGroupItems>({} as IBaseGroupItems)
+  const [category, setCategory] = useState<string>("todos")
 
   function getAllItems() {
     toast.promise(
@@ -41,6 +42,10 @@ export default function Home() {
     getAllItems()
   }, [])
 
+  function handleUpdateCategorySelected(event: any) {
+    setCategory(event.target.name)
+  }
+
   return (
     <Fragment>
       <HeaderMenu customClasses="flex">
@@ -54,18 +59,36 @@ export default function Home() {
         isLoading={isLoading}
         PageContent={
           <Fragment>
-            <section className="flex items-center mt-8 flex-wrap gap-3">
-              <section className=" flex w-full max-w-lg items-center space-x-2 border-r-[1px] border-gray-400 px-6">
-                <Input type="text" className="border-gray-200" placeholder="Nome do produto ou serviço..." />
-                <Button type="button" className=" flex gap-2">Buscar <FiSearch /></Button>
+            <section className="flex flex-col items-center justify-center mt-8 flex-wrap gap-8">
+              <section className=" flex w-full max-w-[800px] items-center space-x-2 px-7">
+                <Input type="text" className="border-gray-200 h-12" placeholder="Nome do produto ou serviço..." />
+                <Button type="button" className=" flex gap-2 h-12">Buscar <FiSearch /></Button>
               </section>
 
-              <section className="flex gap-2 overflow-x-auto md:overflow-hidden px-3 md:px-7 mt-3 md:mt-0">
-                <Button type="button" className=" flex gap-2">Categoria 1</Button>
-                <Button type="button" className=" flex gap-2">Categoria 2</Button>
-                <Button type="button" className=" flex gap-2">Categoria 3</Button>
-                <Button type="button" className=" flex gap-2">Categoria 4</Button>
-                <Button type="button" className=" flex gap-2">Categoria 5</Button>
+              <section className="flex gap-2 w-full overflow-x-auto items-center md:overflow-hidden px-3 md:px-7 mt-3 md:mt-0">
+                <p className="pr-4 py-2 border-r-gray-500 border-[1px]">Categorias</p>
+                {
+                  items.produtos?.categories.map((categoryName) => (
+                    <Button 
+                      name={categoryName} 
+                      type="button" 
+                      variant={categoryName === category ? 'default' : 'ghost'}
+                      className="border-[1px] border-gray-500 flex gap-2"
+                      onClick={(event) => handleUpdateCategorySelected(event)}
+                    >
+                      { categoryName }
+                    </Button>
+                  ))
+                }
+                 <Button
+                    type="button" 
+                    name="todos"
+                    variant={category === "todos" ? 'default' : 'ghost'}
+                    className="border-[1px] border-gray-500 flex gap-2"
+                    onClick={(event) => handleUpdateCategorySelected(event)}
+                  >
+                    Todos
+                  </Button>
               </section>
             </section>
 

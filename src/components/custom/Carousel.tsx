@@ -14,6 +14,7 @@ interface ICarouselItems {
 }
 export function CarouselItems({ items }: ICarouselItems) {
   const [itemsCategory, setItemsCategory] = useState<string[]>([])
+  const valuesPerKey = Object.keys(items?.values ?? [])
 
   useEffect(() => {
     if (items) {
@@ -22,17 +23,16 @@ export function CarouselItems({ items }: ICarouselItems) {
   })
   return (
     <section className="p-2 px-7 flex flex-col gap-4">
-      {itemsCategory.map((category) => (
-        <Fragment>
+      {itemsCategory.map((category, index) => (
+        <Fragment key={category}>
           <p className="font-raleway font-medium text-xl text-[#64748B] w-full mb-2">{ category }</p>
-          <Carousel className="w-full">
+          <Carousel key={category} className="w-full">
             <CarouselContent className="-ml-1">
-              {items.values[category].map((item: IItem) => (
+              {items.values[valuesPerKey[index]].map((item: IItem) => (
                 <CarouselItem key={ item.id } className="pl-1 md:basis-1/2 lg:basis-1/6">
                   <section>
                     <CardItem item={item} />
                   </section>
-                  
                 </CarouselItem>
               ))}
             </CarouselContent>
