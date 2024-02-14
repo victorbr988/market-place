@@ -12,9 +12,10 @@ import { FiLock } from "react-icons/fi"
 import { z } from "zod"
 import { AvatarProfile } from "@/components/custom/Avatar"
 import { Label } from "@/components/ui/label"
-import { login } from "@/axios/requests/login"
+import { login } from "@/axios/requests/user/login"
 import toast from "react-hot-toast"
 import { useRouter } from "next/navigation"
+import { getUserLogged } from "@/axios/requests/user/getLogged"
 
 const formSchema = z.object({
   email: z.string().min(1, {
@@ -42,12 +43,22 @@ export default function Login() {
       {
         loading: "Aguardando...",
         success: () => {
-          router.push("/")
           return "Sessão iniciada"
         },
-        error: "Algo deu errado"
+        error: (error: any) => {
+          if (error.request.status == 401) return "E-mail e/ou senha inválidos"
+          return "Algo deu errado"
+        }
       }
     )
+    saveUserLoggedOnStorage()
+  }
+
+  function saveUserLoggedOnStorage() {
+    getUserLogged().then((response: any) => {
+      localStorage.setItem("user", JSON.stringify(response.data.user))
+      router.push("/")
+    })
   }
 
   return (
@@ -67,13 +78,13 @@ export default function Login() {
             <section className="mb-3 flex flex-col gap-6">
               <section>
                 <Label className="font-raleway font-medium text-lg">E-mail</Label>
-                <Input className="font-sans" placeholder="Ex: meuemail@gmail.com" type="email" {...register("email")} />
+                <Input autoComplete="username" className="font-sans" placeholder="Ex: meuemail@gmail.com" type="email" {...register("email")} />
                 { errors.email && (<span className="text-red-500 p-1 text-sm">{errors.email?.message}</span>) }
               </section>
 
               <section>
                 <Label className="font-raleway font-medium text-lg">Senha</Label>
-                <Input className="font-sans" placeholder="********" type="password" {...register("password")} />
+                <Input autoComplete="current-password" className="font-sans" placeholder="********" type="password" {...register("password")} />
                 { errors.password && (<span className="text-red-500 p-1 text-sm">{errors.password?.message}</span>) }
               </section>
             </section>

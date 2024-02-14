@@ -22,11 +22,27 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import toast from "react-hot-toast";
 import { AvatarProfile } from "@/components/custom/Avatar";
+import { IItem, ISeller } from "@/axios/types";
+import { getItemsById } from "@/axios/requests/items/getItemById";
+import { Context } from "@/state/zustandContext";
+import { priceFormat } from "@/utils/priceFormat";
+import { getUserById } from "@/axios/requests/user/getUserById";
+import { dateFormat } from "@/utils/dateFormat";
+import { ViewControl } from "@/components/custom/ViewControl";
+import { CardItemSkeleton } from "@/components/custom/skeleton/CardItemSkeleton";
 
-export default function Item() {
+interface IItemProps {
+  params: { itemId: string }
+}
+
+export default function Item({ params }: IItemProps) {
   const [api, setApi] = useState<CarouselApi>()
+  const { isLoading, setIsLoading } = Context.loadingStore()
   const [current, setCurrent] = useState(0)
   const [count, setCount] = useState(4)
+  const [item, setItem] = useState<IItem>({} as IItem)
+  const [seller, setSeller] = useState<ISeller>({} as ISeller)
+  const uploadBaseRoute = process.env.NEXT_PUBLIC_UPLOAD_ORIGIN
 
   useEffect(() => {
     if (!api) {
@@ -40,7 +56,29 @@ export default function Item() {
     })
   }, [api])
 
-  function copyToClipboard(event: any) {
+  useEffect(() => {
+    getItemsById(params.itemId as string)
+      .then((response: any) => {
+        setIsLoading(false)
+        setItem(response?.data)
+      })
+      .catch((error) => {
+        console.log(error)
+        setIsLoading(false)
+      })
+
+    getUserById(item.seler_id)
+      .then((response: any) => {
+        setIsLoading(false)
+        setSeller(response?.data)
+      })
+      .catch((error) => {
+        console.log(error)
+        setIsLoading(false)
+      })
+  }, [])
+
+  function copyToClipboard() {
     var temporaryElement = document.createElement('input'),
     text = window.location.href;
 
@@ -52,6 +90,8 @@ export default function Item() {
 
     toast.success("Link copiado para área de transferência")
   }
+
+  console.log(item)
 
   return(
     <Fragment>
@@ -65,32 +105,39 @@ export default function Item() {
       <section className="md:pt-10 md:px-20">
         <Carousel setApi={setApi} className="w-full">
           <CarouselContent className="-ml-1 lg:flex lg:justify-center">
-            {Array.from({ length: 4 }).map((_, index) => (
-              <CarouselItem key={index} className="pl-1 md:basis-1/2 lg:basis-1/6">
-                <Card>
-                  <CardContent>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <img className="w-full h-full rounded-t-lg" src="https://acarnequeomundoprefere.com.br/uploads/media/image/frimesa-receita-hamburguer-suino_smlr.jpg" alt="Imagem de um item" />
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-[800px]">
-                        <div className="p-2">
-                          <img className="w-full h-full rounded-t-lg" src="https://acarnequeomundoprefere.com.br/uploads/media/image/frimesa-receita-hamburguer-suino_smlr.jpg" alt="Imagem de um item" />
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </CardContent>
-                </Card>
-              </CarouselItem>
-            ))}
+            <ViewControl 
+              isLoading={isLoading}
+              PageContent={item.images.map((imageName) => (
+                <CarouselItem key={imageName} className="pl-1 md:basis-1/2 lg:basis-1/6">
+                  <Card>
+                    <CardContent>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <img className="w-full h-full rounded-t-lg" src={`${uploadBaseRoute}/${imageName}`} alt="Imagem de um item" />
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[800px]">
+                          <div className="p-2">
+                            <img className="w-full h-full rounded-t-lg" src={`${uploadBaseRoute}/${imageName}`} alt="Imagem de um item" />
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </CardContent>
+                  </Card>
+                </CarouselItem>
+              ))}
+              Fallback={
+                <CardItemSkeleton />
+              }
+            />
+            
           </CarouselContent>
           <p className="font-raleway font-medium justify-center text-xl flex md:hidden">{current} - {count}</p>
         </Carousel>
       </section>
 
       <section className="flex justify-between gap-2 px-5 md:px-20 py-3">
-        <p className="font-raleway font-semibold text-lg truncate w-2/3">Hamburguer</p>
-        <p className="font-sans font-semibold text-lg w-1/3 text-end">R$ 455,99</p>
+        <p className="font-raleway font-semibold text-lg truncate w-2/3">{item.name}</p>
+        <p className="font-sans font-semibold text-lg w-1/3 text-end">{priceFormat(item.price)}</p>
       </section>
 
       <section className="px-5 md:px-20">
@@ -98,20 +145,22 @@ export default function Item() {
           <AccordionItem className="border-gray-400" defaultValue="1" value="details">
             <AccordionTrigger>Detalhes do item</AccordionTrigger>
             <AccordionContent>
-              Um suculento hambúrguer grelhado de carne angus, coberto com queijo cheddar derretido, alface iceberg crocante, fatias de tomate maduro, cebola caramelizada e um toque de molho especial, tudo envolto em um pão brioche levemente tostado.
+              { item.description }
             </AccordionContent>
           </AccordionItem>
           <AccordionItem className="border-gray-400" value="information">
-            <AccordionTrigger>Informações adicionais</AccordionTrigger>
+            <AccordionTrigger>Informações do vendedor</AccordionTrigger>
             <AccordionContent>
-              <p className="flex gap-1"><strong>Vendedor:</strong>Victor</p>
-              <p className="flex gap-1"><strong>Condomínio:</strong>Vila serena ala Oeste</p>
+              <p className="flex gap-1"><strong>Vendedor:</strong>{ seller.name }</p>
+              <p className="flex gap-1"><strong>Telefone:</strong>{ seller.phone }</p>
+              <p className="flex gap-1"><strong>email:</strong>{ seller.email }</p>
+              <p className="flex gap-1"><strong>Vendedor desde:</strong>{ dateFormat(seller.created_at) }</p>
             </AccordionContent>
           </AccordionItem>
         </Accordion>
 
         <section className="pt-3 flex gap-2 items-center">
-          <Button variant="outline" onClick={(event) => copyToClipboard(event)}>
+          <Button variant="outline" onClick={() => copyToClipboard()}>
             <FiCopy />
           </Button>
 

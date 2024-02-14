@@ -3,13 +3,27 @@ export interface IUserLogin {
   password: string
 }
 
+export interface IGetItemsQuery {
+  search: string;
+  category: string;
+}
+
 export interface IBaseGroupItems {
-  produtos: IProdutos;
-  servicos: IProdutos;
+  products: IProdutos;
+  services: IProdutos;
   condominios: ICondos;
 }
+
+export interface ICategories {
+  id: string;
+  name: string;
+  name_clean: string;
+  description: string
+}
+
 export interface IProdutos {
-  categories: string[];
+  length?: number
+  categories: ICategories[];
   values: Record<string, IItem[]>;
 }
 
@@ -19,8 +33,11 @@ export interface IItem {
   description: string;
   price: number;
   situation: number;
+  seler_id: string;
+  seler_phone: string;
   images: string[];
 }
+
 export interface ICondos {
   id: string;
   name: string;
@@ -32,4 +49,13 @@ export interface ICondos {
   updated_at?: null;
   deleted_at?: null;
   images?: (string)[];
+}
+
+export interface ISeller {
+  id: string;
+  name: string;
+  email: string;
+  role: number;
+  phone: string;
+  created_at: string;
 }
