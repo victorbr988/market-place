@@ -134,7 +134,7 @@ export default function Profile() {
           </div>
         </section>
       </section>
-      <Badge className="mt-3 mx-5 text-white bg-gray-600 hover:bg-gray-600" variant="secondary">
+      <Badge className="mt-3 mx-5 text-white bg-green-600 hover:bg-green-600" variant="secondary">
         { user.role === 0 ? 'Síndico': 'Vendedor'}
       </Badge>
 
