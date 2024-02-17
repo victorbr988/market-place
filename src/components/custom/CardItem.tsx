@@ -4,14 +4,16 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
 import { Context } from "@/state/zustandContext"
 import { priceFormat } from "@/utils/priceFormat"
 import { useRouter } from "next/navigation"
 
 interface ICardItem {
-  item: IItem
+  item: IItem;
+  clasName?: string;
 }
-export function CardItem({ item }: ICardItem) {
+export function CardItem({ item, clasName }: ICardItem) {
   const { setIsLoading } = Context.loadingStore()
   const uploadBaseRoute = process.env.NEXT_PUBLIC_UPLOAD_ORIGIN
   const router = useRouter()
@@ -26,7 +28,7 @@ export function CardItem({ item }: ICardItem) {
       className="hover:scale-105 transition-all cursor-pointer"
       onClick={goToItemInformation}
     >
-      <CardContent>
+      <CardContent className={clasName}>
         <img className="w-full h-24 rounded-t-lg" src={`${uploadBaseRoute}/${item.images[0]}`} alt="Imagem de um item" />
       </CardContent>
       <CardFooter className="flex justify-between items-center">

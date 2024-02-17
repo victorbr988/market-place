@@ -3,6 +3,12 @@ export interface IUserLogin {
   password: string
 }
 
+export interface IUserData {
+  name: string;
+  email: string;
+  phone: string;
+}
+
 export interface IGetItemsQuery {
   search: string;
   category: string;
@@ -30,11 +36,13 @@ export interface IProdutos {
 export interface IItem {
   id: string;
   name: string;
+  type: string;
   description: string;
   price: number;
   situation: number;
   seler_id: string;
   seler_phone: string;
+  category_id: string;
   images: string[];
 }
 

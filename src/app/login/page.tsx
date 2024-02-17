@@ -43,6 +43,7 @@ export default function Login() {
       {
         loading: "Aguardando...",
         success: () => {
+          saveUserLoggedOnStorage()
           return "Sessão iniciada"
         },
         error: (error: any) => {
@@ -51,7 +52,7 @@ export default function Login() {
         }
       }
     )
-    saveUserLoggedOnStorage()
+    
   }
 
   function saveUserLoggedOnStorage() {

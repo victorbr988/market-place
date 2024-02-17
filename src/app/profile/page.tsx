@@ -3,6 +3,7 @@
 import { AvatarProfile } from "@/components/custom/Avatar"
 import { HeaderMenu } from "@/components/custom/Header"
 import { Fragment, useEffect, useState } from "react"
+import * as SelectGroup from "@/components/ui/select"
 import {
   Accordion,
   AccordionContent,
@@ -12,14 +13,14 @@ import {
 import { CardItem } from "@/components/custom/CardItem";
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
-import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Carousel, CarouselContent, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
-import { FiBell, FiEdit2 } from "react-icons/fi"
+import { FiBell, FiEdit2, FiPlus } from "react-icons/fi"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
-import { useForm } from "react-hook-form"
+import { FieldErrors, useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { getItemsByUserId } from "@/axios/requests/items/getItemsByUser"
@@ -27,7 +28,13 @@ import { ViewControl } from "@/components/custom/ViewControl"
 import { Context } from "@/state/zustandContext"
 import { CardItemSkeleton } from "@/components/custom/skeleton/CardItemSkeleton"
 import { EmptyData } from "@/components/custom/EmptyData"
-import { IItem } from "@/axios/types"
+import { ICategories, IItem } from "@/axios/types"
+import toast from "react-hot-toast"
+import { updateUser } from "@/axios/requests/user/updateUser"
+import { ProgressBar } from "@/components/custom/Progress"
+import { Textarea } from "@/components/ui/textarea"
+import { Form, FormControl, FormField, FormItem } from "@/components/ui/form"
+import { getCategories } from "@/axios/requests/categories/getCategories"
 
 const formSchema = z.object({
   name: z.string().min(1, {
@@ -43,12 +50,35 @@ const formSchema = z.object({
   })
 })
 
+const formCreateItem = z.object({
+  name: z.string().min(1, {
+    message: "O nome é obrigatório"
+  }),
+  description: z.string().min(1, {
+    message: "A descrição é obrigatória"
+  }).max(250, {
+    message: "Máximo de 250 carácteres"
+  }),
+  type: z.coerce.string().min(1, {
+    message: "Tipo de anúncio é obrigatório"
+  }),
+  price: z.coerce.number({
+    invalid_type_error: 'Use apenas números com pontos ao invés de vírgulas para casas decimais'
+  }).positive('O valor do item deve ser maior que 0'),
+  category_id: z.string().min(1, {
+    message: "Categoria é obrigatória"
+  }),
+  images: z.instanceof(FileList)
+})
+
 export default function Profile() {
   const [numberNotifications, setNumberNotifications] = useState<number>(0)
   const { isLoading, setIsLoading } = Context.loadingStore()
   const [items, setItems] = useState([])
+  const [categories, setCategories] = useState<ICategories[]>([])
   const router = useRouter()
   const user = JSON.parse(localStorage.getItem("user") as string)
+  const [files, setFiles] = useState([])
   const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -58,12 +88,30 @@ export default function Profile() {
     }
   })
 
+  const form = useForm<z.infer<typeof formCreateItem>>({
+    resolver: zodResolver(formCreateItem),
+    defaultValues: {
+      price: 0,
+      category_id: '',
+      type: '',
+      description: '',
+    }
+  })
+
+  const description = form.watch("description")
+
   useEffect(() => {
+    setIsLoading(true)
     if (!user) return router.push("/")
     getItemsByUserId(user.id)
       .then((response) => {
-        setIsLoading(false)
         setItems(response?.data)
+      })
+      .catch(() => setIsLoading(false))
+    getCategories()
+      .then((response) => {
+        setCategories(response.categories)
+        setIsLoading(false)
       })
       .catch(() => setIsLoading(false))
   }, [])
@@ -73,14 +121,73 @@ export default function Profile() {
   }
   
   function onSaveEdit(userInfo: z.infer<typeof formSchema>) {
-    console.log(userInfo)
+    setIsLoading(true)
+    toast.promise(
+      updateUser(user.id, userInfo),
+      {
+        loading: "Salvando...",
+        success: () => {
+          setIsLoading(false)
+          router.push("/login")
+          return "Dados alterados"
+        },
+        error: () => {
+          setIsLoading(false)
+          return "Algo deu errado"
+        }
+      }
+    )
+  }
+
+  const handleFileChange = (event: any) => {
+    const files = event.target.files;
+    if (files.length > 4) {
+      form.setError("images", {
+        type: "maxLength",
+        message: "Máximo de 4 arquivos por anúncio"
+      });
+    } else {
+      form.clearErrors("images");
+    }
+  };
+
+  function onCreateItem(itemInfo: z.infer<typeof formCreateItem>) {
+    const formData = new FormData();
+    formData.append('name', itemInfo.name);
+    formData.append('description', itemInfo.description);
+    formData.append('type', itemInfo.type);
+    formData.append('price', itemInfo.price.toString());
+    formData.append('category_id', itemInfo.category_id);
+
+    form.resetField('name')
+    form.resetField('description')
+    form.resetField('type')
+    form.resetField('price');
+    form.resetField('category_id')
+    form.resetField('images')
+    /*setIsLoading(true)
+    toast.promise(
+      updateItem(item.id, itemFormat),
+      {
+        loading: "Salvando...",
+        success: () => {
+          getItem(params.itemId)
+          setIsLoading(false)
+          return "Dados alterados"
+        },
+        error: () => {
+          setIsLoading(false)
+          return "Algo deu errado"
+        }
+      }
+    )*/
   }
 
   return (
     <Fragment>
       <HeaderMenu customClasses="flex">
         <section className="flex justify-between items-center w-full">
-          <p className="font-raleway font-medium text-xl">Meus perfil</p>
+          <p className="font-raleway font-medium text-xl">Meu perfil</p>
           <AvatarProfile />
         </section>
       </HeaderMenu>
@@ -95,7 +202,7 @@ export default function Profile() {
             <SheetHeader>
               <SheetTitle>Editar perfil</SheetTitle>
               <SheetDescription>
-                Se você alterar as informações presentes atualmente, isso terá impacto na visualização
+                Para atualizar suas informações, você será redirecionado para que possa iniciar uma nova sessão
               </SheetDescription>
             </SheetHeader>
             <form onSubmit={handleSubmit(onSaveEdit)} className="py-4 flex flex-col gap-4">
@@ -133,6 +240,113 @@ export default function Profile() {
           
           </div>
         </section>
+        <section className={cn("w-full relative flex justify-end items-center", [user.role !== 1 && 'hidden'])}>
+        <Sheet>
+            <SheetTrigger asChild>
+              <Button className="flex gap-2">
+                <FiPlus />
+                Criar um anúncio
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="mobileFull">
+              <SheetHeader>
+                <SheetTitle>Editar anúncio</SheetTitle>
+                <SheetDescription>
+                  Verifique todas as informações preenchidas antes de confirmar a criação do anúncio
+                </SheetDescription>
+              </SheetHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onCreateItem)} className="py-4 flex flex-col gap-4">
+                  <section>
+                    <Label className="text-right">Nome</Label>
+                    <Input autoComplete="username" className="col-span-3" placeholder="Nome do produto" type="text" {...form.register("name")} />
+                    { form.formState.errors.name && (<span className="text-red-500 px-1 py-4 text-[12px]">{form.formState.errors.name?.message}</span>) }
+                  </section>
+
+                  <section>
+                    <Label className="text-right">Descrição</Label>
+                    <Textarea maxLength={250} placeholder="Descrição aqui..." {...form.register("description")} />
+                    <ProgressBar className="mt-1" currentProgress={description?.length * 100 / 250 || 0 } maxProgress={250} />
+                    { form.formState.errors.description && (<span className="text-red-500 px-1 py-4 text-[12px]">{form.formState.errors.description?.message}</span>) }
+                  </section>
+
+                  <section>
+                    <FormField
+                      control={form.control}
+                      name="type"
+                      
+                      render={({ field }) => (
+                        <FormItem>
+                          <Label className="text-right">Tipo do anúncio</Label>
+                          <SelectGroup.Select onValueChange={field.onChange}>
+                            <FormControl>
+                              <SelectGroup.SelectTrigger>
+                                <SelectGroup.SelectValue placeholder="Selecione o tipo do anúncio" />
+                              </SelectGroup.SelectTrigger>
+                            </FormControl>
+                            <SelectGroup.SelectContent>
+                              <SelectGroup.SelectGroup>
+                                <SelectGroup.SelectItem value="1">Produto</SelectGroup.SelectItem>
+                                <SelectGroup.SelectItem value="2">Serviço</SelectGroup.SelectItem>
+                              </SelectGroup.SelectGroup>
+                            </SelectGroup.SelectContent>
+                          </SelectGroup.Select>
+                          { form.formState.errors.type && (<span className="text-red-500 px-1 py-4 text-[12px]">{form.formState.errors.type?.message}</span>) }
+                        </FormItem>
+                      )}
+                    />
+                  </section>
+
+                  <section>
+                    <FormField
+                      control={form.control}
+                      name="category_id"
+                      
+                      render={({ field }) => (
+                        <FormItem>
+                          <Label className="text-right">Categoria do anúncio</Label>
+                          <SelectGroup.Select onValueChange={field.onChange}>
+                            <FormControl>
+                              <SelectGroup.SelectTrigger>
+                                <SelectGroup.SelectValue placeholder="Seleciona uma categoria" />
+                              </SelectGroup.SelectTrigger>
+                            </FormControl>
+                            <SelectGroup.SelectContent>
+                              <SelectGroup.SelectGroup>
+                                {
+                                  categories.map((category) => (
+                                    <SelectGroup.SelectItem key={category.id} value={category.id}>{category.name}</SelectGroup.SelectItem>
+                                  ))
+                                }
+                              </SelectGroup.SelectGroup>
+                            </SelectGroup.SelectContent>
+                          </SelectGroup.Select>
+                          { form.formState.errors.category_id && (<span className="text-red-500 px-1 py-4 text-[12px]">{form.formState.errors.category_id?.message}</span>) }
+                        </FormItem>
+                      )}
+                    />
+                  </section>
+
+                  <section>
+                    <Label className="text-right">Preço</Label>
+                    <Input className="col-span-3" type="text" {...form.register("price")} />
+                    { form.formState.errors.price && (<span className="text-red-500 px-1 py-4 text-[12px]">{form.formState.errors.price?.message}</span>) }
+                  </section>
+
+                  <section>
+                    <Label className="text-right">Imagens</Label>
+                    <Input className="col-span-3" type="file" multiple { ...form.register("images") } onChange={(event) => handleFileChange(event)} />
+                    { form.formState.errors.images && (<span className="text-red-500 px-1 py-4 text-[12px]">{form.formState.errors.images?.message}</span>) }
+                  </section>
+
+                  <SheetFooter>
+                    <Button className="w-full sm:max-w-lg" type="submit">Salvar</Button>
+                  </SheetFooter>
+                </form>
+              </Form>
+            </SheetContent>
+          </Sheet>
+        </section>
       </section>
       <Badge className="mt-3 mx-5 text-white bg-green-600 hover:bg-green-600" variant="secondary">
         { user.role === 0 ? 'Síndico': 'Vendedor'}
@@ -154,7 +368,7 @@ export default function Profile() {
                     }
                     PageContent={
                       items.map((item: IItem) => (
-                        <CardItem key={item.id} item={item} />
+                        <CardItem clasName="min-w-56" key={item.id} item={item} />
                       ))
                     }
                     Fallback={

@@ -4,6 +4,7 @@ import { HeaderMenu } from "@/components/custom/Header";
 import { Fragment, useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
+import * as SelectGroup from "@/components/ui/select"
 import {
   Accordion,
   AccordionContent,
@@ -11,8 +12,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button";
-import { FiCopy } from "react-icons/fi";
-import { SheetButton } from "@/components/custom/Sheet";
+import { FiCopy, FiEdit2 } from "react-icons/fi";
 import {
   Dialog,
   DialogContent,
@@ -33,20 +33,53 @@ import { CardItemSkeleton } from "@/components/custom/skeleton/CardItemSkeleton"
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { whatsappRedirect } from "@/utils/whatsappRedirect";
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Textarea } from "@/components/ui/textarea";
+import { ProgressBar } from "@/components/custom/Progress";
+import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
+import { updateItem } from "@/axios/requests/items/updateItem";
 
 interface IItemProps {
   params: { itemId: string }
 }
 
+const formSchema = z.object({
+  name: z.string().min(1, {
+    message: "O nome é obrigatório"
+  }),
+  description: z.string().min(1, {
+    message: "O nome é obrigatório"
+  }).max(250, {
+    message: "Máximo de 250 carácteres"
+  }),
+  type: z.coerce.string(),
+  price: z.coerce.number().positive('O valor do item deve ser maior que 0')
+})
+
 export default function Item({ params }: IItemProps) {
   const [api, setApi] = useState<CarouselApi>()
   const { isLoading, setIsLoading } = Context.loadingStore()
   const [current, setCurrent] = useState(0)
-  const [count, setCount] = useState(4)
+  const [count, setCount] = useState(0)
   const [item, setItem] = useState<IItem>({} as IItem)
   const [seller, setSeller] = useState<ISeller>({} as ISeller)
   const uploadBaseRoute = process.env.NEXT_PUBLIC_UPLOAD_ORIGIN
   const user = JSON.parse(localStorage.getItem("user") as string)
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: item.name,
+      description: item.description,
+      type: item.name,
+      price: item.price,
+    }
+  })
+
+  const description = form.watch("description")
 
   useEffect(() => {
     if (!api) {
@@ -54,7 +87,7 @@ export default function Item({ params }: IItemProps) {
     }
  
     setCurrent(api.selectedScrollSnap() + 1)
- 
+   
     api.on("select", () => {
       setCurrent(api.selectedScrollSnap() + 1)
     })
@@ -64,6 +97,7 @@ export default function Item({ params }: IItemProps) {
     getItemsById(itemId)
       .then((response: any) => {
         setItem(response?.data)
+        setCount(response?.data.images.length)
       })
       .catch((error) => {
         console.log(error)
@@ -109,6 +143,26 @@ export default function Item({ params }: IItemProps) {
 
   function onContactSeller() {
     whatsappRedirect(seller.phone, `Gostaria de saber mais sobre o anúncio:`, window.location.href)
+  }
+
+  function onSaveEdit(itemInfo: z.infer<typeof formSchema>) {
+    const itemFormat = {...itemInfo, category_id: item.category_id}
+    setIsLoading(true)
+    toast.promise(
+      updateItem(item.id, itemFormat),
+      {
+        loading: "Salvando...",
+        success: () => {
+          getItem(params.itemId)
+          setIsLoading(false)
+          return "Dados alterados"
+        },
+        error: () => {
+          setIsLoading(false)
+          return "Algo deu errado"
+        }
+      }
+    )
   }
 
   return(
@@ -173,12 +227,12 @@ export default function Item({ params }: IItemProps) {
               <ViewControl 
                 isLoading={isLoading}
                 PageContent={
-                  <Fragment>
+                  <section className="flex flex-col gap-4">
                     <p className="flex gap-1 font-sans"><strong>Vendedor:</strong>{ seller.name }</p>
                     <p className="flex gap-1 font-sans"><strong>Telefone:</strong>{ seller.phone }</p>
                     <p className="flex gap-1 font-sans"><strong>E-mail:</strong>{ seller.email }</p>
                     <p className="flex gap-1 font-sans"><strong>Vendedor desde:</strong>{ dateFormat(seller?.created_at || new Date().toISOString()) }</p>
-                  </Fragment>
+                  </section>
                 }
                 Fallback={
                   <Fragment>
@@ -203,22 +257,73 @@ export default function Item({ params }: IItemProps) {
         </section>
 
         <section className={cn("pt-3 flex gap-2 items-center", [user.id !== seller.id && 'hidden'])}>
-          <SheetButton>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">
-                  Name
-                </Label>
-                <Input id="name" value="Pedro Duarte" className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="username" className="text-right">
-                  Username
-                </Label>
-                <Input id="username" value="@peduarte" className="col-span-3" />
-              </div>
-            </div>
-          </SheetButton>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="hover:bg-transparent"> <FiEdit2 /> </Button>
+            </SheetTrigger>
+            <SheetContent side="mobileFull">
+              <SheetHeader>
+                <SheetTitle>Editar anúncio</SheetTitle>
+                <SheetDescription>
+                  Preencha todos os campos corretamente e verifique as informações antes de confirmar a edição
+                </SheetDescription>
+              </SheetHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSaveEdit)} className="py-4 flex flex-col gap-4">
+                  <section>
+                    <Label className="text-right">Nome</Label>
+                    <Input defaultValue={item.name} autoComplete="username" className="col-span-3" placeholder="Seu Nome" type="text" {...form.register("name")} />
+                    { form.formState.errors.name && (<span className="text-red-500 px-1 py-4 text-[12px]">{form.formState.errors.name?.message}</span>) }
+                  </section>
+
+                  <section>
+                    <Label className="text-right">Descrição</Label>
+                    <Textarea defaultValue={item.description} maxLength={250} placeholder="Descrição aqui..." {...form.register("description")} />
+                    <ProgressBar className="mt-1" currentProgress={description?.length * 100 / 250 || item.description?.length * 100 / 250} maxProgress={250} />
+                  </section>
+
+                  <section>
+                    <FormField
+                      control={form.control}
+                      name="type"
+                      
+                      render={({ field }) => (
+                        <FormItem>
+                          <Label className="text-right">Tipo do item</Label>
+                          <SelectGroup.Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectGroup.SelectTrigger>
+                                <SelectGroup.SelectValue placeholder="Selecione o tipo do item" />
+                              </SelectGroup.SelectTrigger>
+                            </FormControl>
+                            <SelectGroup.SelectContent>
+                              <SelectGroup.SelectGroup>
+                                <SelectGroup.SelectItem value="1">Produto</SelectGroup.SelectItem>
+                                <SelectGroup.SelectItem value="2">Serviço</SelectGroup.SelectItem>
+                              </SelectGroup.SelectGroup>
+                            </SelectGroup.SelectContent>
+                          </SelectGroup.Select>
+                          { form.formState.errors.type && (<span className="text-red-500 px-1 py-4 text-[12px]">{form.formState.errors.type?.message}</span>) }
+                        </FormItem>
+                      )}
+                    />
+                  </section>
+
+                  <section>
+                    <Label className="text-right">Preço</Label>
+                    <Input defaultValue={item.price} className="col-span-3" type="number" {...form.register("price")} />
+                    { form.formState.errors.price && (<span className="text-red-500 px-1 py-4 text-[12px]">{form.formState.errors.price?.message}</span>) }
+                  </section>
+
+                  <SheetFooter>
+                    <SheetClose>
+                      <Button type="submit">Salvar alterações</Button>
+                    </SheetClose>
+                  </SheetFooter>
+                </form>
+              </Form>
+            </SheetContent>
+          </Sheet>
           <p className="text-sm font-sans font-medium">Editar item</p>
         </section>
       </section>
