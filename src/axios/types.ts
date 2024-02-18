@@ -10,6 +10,11 @@ export interface IUserData {
   phone: string;
 }
 
+export interface IUserCreate extends IUserData {
+  password: string;
+  condo_id: string;
+}
+
 export interface IGetItemsQuery {
   search: string;
   category: string;

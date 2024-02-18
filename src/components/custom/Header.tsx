@@ -17,6 +17,7 @@ import { ReactNode } from "react"
 import { cn } from "@/lib/utils"
 import { Context } from "@/state/zustandContext"
 import { useRouter } from "next/navigation"
+import { deleteSession } from "@/axios/requests/user/deleteSession"
 
 interface IHeaderMenu {
   children: ReactNode;
@@ -29,29 +30,32 @@ export function HeaderMenu({ children, customClasses }: IHeaderMenu) {
   const router = useRouter()
 
   function onDeleteSession() {
-    localStorage.removeItem("user")
-    router.push("/")
-    window.location.reload()
+    deleteSession()
+      .then(() => {
+        localStorage.removeItem("user")
+        router.push("/")
+        window.location.reload()
+      })
   }
 
   return (
-    <header className={cn("flex gap-2 items-center bg-white py-2 px-7 shadow-sm", [customClasses])}>
+    <header className={cn("flex gap-2 items-center bg-white py-2 md:px-3 px-2 shadow-sm", [customClasses])}>
       <DropdownMenu>
         <DropdownMenuTrigger className="outline-none">
           <FiMenu className="w-6 h-6" />
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="ml-5">
+        <DropdownMenuContent className="ml-5 min-w-48">
 
           <DropdownMenuLabel className="font-raleway">Navegar</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem className="font-sans">
+            <DropdownMenuItem className="font-sans text-md">
               <Link onClick={() => setIsLoading(true)} className="w-full" href="/">Página inicial</Link>
             </DropdownMenuItem>
-            <DropdownMenuItem className="font-sans">
+            <DropdownMenuItem className="font-sans  text-md">
               <Link onClick={() => setIsLoading(true)} className="w-full" href="/products">Produtos</Link>
             </DropdownMenuItem>
-            <DropdownMenuItem className="font-sans">
+            <DropdownMenuItem className="font-sans  text-md">
               <Link onClick={() => setIsLoading(true)} className="w-full" href="/services">Serviços</Link>
             </DropdownMenuItem>
           </DropdownMenuGroup>
@@ -62,10 +66,10 @@ export function HeaderMenu({ children, customClasses }: IHeaderMenu) {
           <DropdownMenuSeparator />
 
           <DropdownMenuGroup>
-            <DropdownMenuItem className={cn("font-sans", [!user && 'hidden'])}>
+            <DropdownMenuItem className={cn("font-sans  text-md", [!user && 'hidden'])}>
               <Link onClick={() => setIsLoading(true)} className="w-full" href="/profile">Meu perfil</Link>
             </DropdownMenuItem>
-            <DropdownMenuItem className={cn("font-sans", [user && 'hidden'])}>
+            <DropdownMenuItem className={cn("font-sans  text-md", [user && 'hidden'])}>
               <Link onClick={() => setIsLoading(true)} className="w-full" href="/login">Fazer login</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />

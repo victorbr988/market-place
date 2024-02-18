@@ -15,8 +15,9 @@ import { Label } from "@/components/ui/label"
 import { login } from "@/axios/requests/user/login"
 import toast from "react-hot-toast"
 import { useRouter } from "next/navigation"
-import * as NextRouter from "next/router"
 import { getUserLogged } from "@/axios/requests/user/getLogged"
+import { getUserCredentialsGoogleAccount } from "@/firebase/Auth/google/userCredentials"
+
 const formSchema = z.object({
   email: z.string().min(1, {
     message: "O e-mail é obrigatório"
@@ -47,29 +48,44 @@ export default function Login() {
   }, [])
 
   function loginWithCredentials(userCredentials: z.infer<typeof formSchema>) {
-    toast.promise(
-      login(userCredentials),
-      {
-        loading: "Aguardando...",
-        success: () => {
-          saveUserLoggedOnStorage()
-          return "Sessão iniciada"
-        },
-        error: (error: any) => {
-          if (error.request.status == 401) return "E-mail e/ou senha inválidos"
-          return "Algo deu errado"
-        }
-      }
-    )
-    
+    const toastId = toast.loading("Salvando...")
+    login(userCredentials)
+      .then(() => {
+        toast.dismiss(toastId)
+        toast.success("Sessão iniciada")
+        saveUserLoggedOnStorage()
+        router.push("/")
+      })
+      .catch((error) => {
+        toast.dismiss(toastId)
+        toast.error("E-mail e/ou senha inválidos") 
+      })
   }
 
   function saveUserLoggedOnStorage() {
-    getUserLogged().then((response: any) => {
+    getUserLogged()
+      .then((response: any) => {
       localStorage.setItem("user", JSON.stringify(response.data.user))
       router.push("/")
-    })
+    }).catch((error) => console.log(error))
   }
+
+  function onSigninWithGoogleAccount() {
+    getUserCredentialsGoogleAccount()
+      .then((response: any) => {
+        loginWithCredentials({email: response.email, password: ""})
+        router.push("/")
+      })
+      .catch((error) => console.log(error))
+  }
+
+  /*function onSigninWithFacebookAccount() {
+    getUserCredentialsFacebookAccount()
+      .then((response) => {
+        console.log(response)
+      })
+      .catch((error) => console.log(error))
+  }*/
 
   return (
     <Fragment>
@@ -81,7 +97,7 @@ export default function Login() {
       </HeaderMenu>
 
       <section className="flex justify-center items-center h-[85vh] p-4">
-        <section className="bg-white p-8 w-[500px] rounded gap-4 flex flex-col shadow-lg mt-10">
+        <section className="bg-white p-8 w-[500px] lg:w-[700px] rounded gap-4 flex flex-col shadow-lg mt-10">
           <form
             onSubmit={handleSubmit(loginWithCredentials)}
           >
@@ -99,7 +115,6 @@ export default function Login() {
               </section>
             </section>
 
-            <Link href="/forgot-password" className="flex gap-2 items-center underline text-gray-600 py-3"><FiLock /> Esqueci minha senha</Link>
             <Button className="py-6 text-md w-full" type="submit">Acessar</Button>
 
             <div className="flex w-full gap-4 justify-center items-center py-3">
@@ -108,10 +123,13 @@ export default function Login() {
               <hr className="w-1/2 border-gray-400" />
             </div>
 
-            <Button type="button" variant="outline" className="flex items-center w-full gap-2 py-6 text-md"> <FcGoogle className="h-8 w-8" /> Entrar com google</Button>
+            <Button onClick={onSigninWithGoogleAccount} type="button" variant="outline" className="flex items-center w-full gap-2 py-6 text-md">
+              <FcGoogle className="h-8 w-8" /> 
+              Entrar com google
+            </Button>
 
             <section className="flex gap-1 mt-8 justify-center">
-              <p className="font-raleway font-medium">Ainda não possui conta?</p>
+            <p className="font-raleway font-medium">Ainda não possui conta?</p>
               <Link href="/create-account" className="underline text-gray-600">Cadastre-se</Link>
             </section>
           </form>

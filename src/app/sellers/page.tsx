@@ -3,17 +3,12 @@
 import { Fragment, useEffect, useState } from "react"
 import * as SelectGroup from "@/components/ui/select"
 import * as TableGroup from "@/components/ui/table"
-
-import { DotsHorizontalIcon } from "@radix-ui/react-icons"
 import { HeaderMenu } from "@/components/custom/Header"
 import { AvatarProfile } from "@/components/custom/Avatar"
-import { DropdownMenu } from "@radix-ui/react-dropdown-menu"
-import { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { FiSearch } from "react-icons/fi"
-import { AlertDialogConfirm } from "@/components/custom/AlertDialog"
 import { TableControlSellers } from "@/components/custom/Table"
 import { getUsers } from "@/axios/requests/user/getUsers"
 import { Context } from "@/state/zustandContext"
@@ -23,18 +18,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { EmptyData } from "@/components/custom/EmptyData"
 
 export default function Sellers() {
-  const [modalOpen, setModalOpen] = useState<boolean>(false)
   const [users, setUsers] = useState<any>({})
   const { isLoading, setIsLoading } = Context.loadingStore()
   const user = JSON.parse(localStorage.getItem("user") as string)
-
-  function onClose() {
-    setModalOpen(false)
-  }
-
-  function onOpen() {
-    setModalOpen(true)
-  }
 
   useEffect(() => {
     setIsLoading(true)
@@ -65,7 +51,7 @@ export default function Sellers() {
           <Button type="button" className=" flex gap-2">Buscar <FiSearch /></Button>
         </section>
 
-        <section className="flex gap-2 overflow-x-auto md:overflow-hidden px-3 md:px-0 mt-3 md:mt-0">
+        <section className="flex gap-2 overflow-x-auto md:overflow-hidden px-7 md:px-0 mt-3 md:mt-0">
           <SelectGroup.Select defaultValue="pendentes">
             <SelectGroup.SelectTrigger className="w-[180px] bg-gray-900 text-white">
               <SelectGroup.SelectValue placeholder="Status" />
