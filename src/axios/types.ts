@@ -4,6 +4,7 @@ export interface IUserLogin {
 }
 
 export interface IUserData {
+  id: string
   name: string;
   email: string;
   phone: string;
@@ -12,6 +13,11 @@ export interface IUserData {
 export interface IGetItemsQuery {
   search: string;
   category: string;
+}
+
+export interface IGetUsersQuery {
+  role: number,
+  condo_id: string
 }
 
 export interface IBaseGroupItems {

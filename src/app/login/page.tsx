@@ -6,7 +6,7 @@ import { FcGoogle } from "react-icons/fc"
 import { Input } from "@/components/ui/input"
 import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
-import { Fragment } from "react"
+import { Fragment, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { FiLock } from "react-icons/fi"
 import { z } from "zod"
@@ -15,8 +15,8 @@ import { Label } from "@/components/ui/label"
 import { login } from "@/axios/requests/user/login"
 import toast from "react-hot-toast"
 import { useRouter } from "next/navigation"
+import * as NextRouter from "next/router"
 import { getUserLogged } from "@/axios/requests/user/getLogged"
-
 const formSchema = z.object({
   email: z.string().min(1, {
     message: "O e-mail é obrigatório"
@@ -35,7 +35,16 @@ export default function Login() {
     }
   })
 
+
   const router = useRouter()
+
+  useEffect(() => {
+    if (window) {
+      if (window.location.href.split("?").length > 1) {
+        toast.error("Sessão expirada")
+      }
+    }
+  }, [])
 
   function loginWithCredentials(userCredentials: z.infer<typeof formSchema>) {
     toast.promise(

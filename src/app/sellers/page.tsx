@@ -1,6 +1,6 @@
 "use client"
  
-import { Fragment, useState } from "react"
+import { Fragment, useEffect, useState } from "react"
 import * as SelectGroup from "@/components/ui/select"
 import * as TableGroup from "@/components/ui/table"
 
@@ -15,9 +15,18 @@ import { Input } from "@/components/ui/input"
 import { FiSearch } from "react-icons/fi"
 import { AlertDialogConfirm } from "@/components/custom/AlertDialog"
 import { TableControlSellers } from "@/components/custom/Table"
+import { getUsers } from "@/axios/requests/user/getUsers"
+import { Context } from "@/state/zustandContext"
+import { IUserData } from "@/axios/types"
+import { ViewControl } from "@/components/custom/ViewControl"
+import { Skeleton } from "@/components/ui/skeleton"
+import { EmptyData } from "@/components/custom/EmptyData"
 
 export default function Sellers() {
   const [modalOpen, setModalOpen] = useState<boolean>(false)
+  const [users, setUsers] = useState<any>({})
+  const { isLoading, setIsLoading } = Context.loadingStore()
+  const user = JSON.parse(localStorage.getItem("user") as string)
 
   function onClose() {
     setModalOpen(false)
@@ -25,6 +34,20 @@ export default function Sellers() {
 
   function onOpen() {
     setModalOpen(true)
+  }
+
+  useEffect(() => {
+    setIsLoading(true)
+    getUsers({ role: 2, condo_id: user.condo_id})
+      .then((response: any) => {
+        setUsers(response?.data)
+        setIsLoading(false)
+      })
+      .catch(() => setIsLoading(false))
+  }, [])
+
+  function onApproveSeller(userId: string) {
+    console.log(userId)
   }
 
   return (
@@ -59,48 +82,49 @@ export default function Sellers() {
 
       <section className="w-full px-7 mt-5">
         <TableControlSellers
-          collumns={['Status', 'E-mail', "Condomínio", "Nome", "Ações"]}
+          collumns={['Status', 'E-mail', "Telefone", "Nome", "Ações"]}
         >
-          <TableGroup.TableRow>
-              <TableGroup.TableCell className="font-medium">
-                <Badge variant="destructive">Pendente</Badge>
-              </TableGroup.TableCell>
-              <TableGroup.TableCell>fulano@gmail.com</TableGroup.TableCell>
-              <TableGroup.TableCell className="truncate">Vila Serena Ala oeste</TableGroup.TableCell>
-              <TableGroup.TableCell>Victor</TableGroup.TableCell>
-              <TableGroup.TableCell>
-                <DropdownMenu open={modalOpen}>
-                  <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" onClick={onOpen} className="h-8 w-8 p-0 hover:bg-gray-200">
-                      <DotsHorizontalIcon className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
-                      <AlertDialogConfirm
-                        title="Você tem certeza?"
-                        message="Ao aprovar o usuário, você permitirá que ele possa ofertar produtos e/ou serviços para seu condomínio"
-                        cancelAction={onClose}
-                        continueAction={onClose}>
-                        <Button variant="ghost" className="w-full text-start h-6">Aprovar</Button>
-                      </AlertDialogConfirm>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <AlertDialogConfirm
-                        title="Você tem certeza?"
-                        message="Ao recusar o usuário, você não permitirá que ele possa ofertar produtos e/ou serviços para seu condomínio"
-                        cancelAction={onClose} 
-                        continueAction={onClose}>
-                        <Button variant="ghost" className="w-full text-start h-6">Recusar</Button>
-                      </AlertDialogConfirm>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Button onClick={onClose} variant="destructive" className="w-full text-start h-6">Cancelar</Button>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableGroup.TableCell>
-            </TableGroup.TableRow>
+          <ViewControl
+            isLoading={isLoading}
+            totalRegisters={users.total}
+            PageContent={
+              users.data?.map((user: IUserData) => (
+                <TableGroup.TableRow key={user.id}>
+                  <TableGroup.TableCell className="font-medium">
+                    <Badge variant="destructive">Pendente</Badge>
+                  </TableGroup.TableCell>
+                  <TableGroup.TableCell>{user.email}</TableGroup.TableCell>
+                  <TableGroup.TableCell className="truncate">{user.phone}</TableGroup.TableCell>
+                  <TableGroup.TableCell >{user.name}</TableGroup.TableCell>
+                  <TableGroup.TableCell>
+                    <Button onClick={() => onApproveSeller(user.id)} className="max-w-md bg-green-600 hover:bg-green-600/70 text-white text-start h-6">Aprovar</Button>
+                  </TableGroup.TableCell>
+                </TableGroup.TableRow>
+              ))
+            }
+            Fallback={
+              <TableGroup.TableRow>
+                <TableGroup.TableCell>
+                  <Skeleton className="h-5 w-28 bg-gray-600 rounded-lg" />
+                </TableGroup.TableCell>
+                <TableGroup.TableCell>
+                  <Skeleton className="h-5 w-28 bg-gray-600 rounded-lg" />
+                </TableGroup.TableCell>
+                <TableGroup.TableCell>
+                  <Skeleton className="h-5 w-28 bg-gray-600 rounded-lg" />
+                </TableGroup.TableCell>
+                <TableGroup.TableCell>
+                  <Skeleton className="h-5 w-28 bg-gray-600 rounded-lg" />
+                </TableGroup.TableCell>
+                <TableGroup.TableCell>
+                  <Skeleton className="h-5 w-28 bg-gray-600 rounded-lg" />
+                </TableGroup.TableCell>
+              </TableGroup.TableRow>
+            }
+            EmptyComponent={
+              <EmptyData customMessage="Nenhum usuário pendente" />
+            }
+          />
         </TableControlSellers>
       </section>
     </Fragment>

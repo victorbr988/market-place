@@ -14,13 +14,13 @@ import { CardItem } from "@/components/custom/CardItem";
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Carousel, CarouselContent, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { FiBell, FiEdit2, FiPlus } from "react-icons/fi"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
-import { FieldErrors, useForm } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { getItemsByUserId } from "@/axios/requests/items/getItemsByUser"
@@ -35,6 +35,8 @@ import { ProgressBar } from "@/components/custom/Progress"
 import { Textarea } from "@/components/ui/textarea"
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form"
 import { getCategories } from "@/axios/requests/categories/getCategories"
+import { createItem } from "@/axios/requests/items/createItem"
+import { getUsers } from "@/axios/requests/user/getUsers"
 
 const formSchema = z.object({
   name: z.string().min(1, {
@@ -78,7 +80,29 @@ export default function Profile() {
   const [categories, setCategories] = useState<ICategories[]>([])
   const router = useRouter()
   const user = JSON.parse(localStorage.getItem("user") as string)
-  const [files, setFiles] = useState([])
+
+  if (!user) return router.push("/")
+
+  useEffect(() => {
+    setIsLoading(true)
+    getItemsByUserId(user.id)
+      .then((response) => {
+        setItems(response?.data)
+      })
+      .catch(() => setIsLoading(false))
+    getCategories()
+      .then((response) => {
+        setCategories(response.categories)
+      })
+      .catch(() => setIsLoading(false))
+    getUsers({ role: 2, condo_id: user.condo_id})
+      .then((response) => {
+        setNumberNotifications(response?.data.total)
+        setIsLoading(false)
+      })
+      .catch(() => setIsLoading(false))
+  }, [])
+
   const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -100,23 +124,8 @@ export default function Profile() {
 
   const description = form.watch("description")
 
-  useEffect(() => {
-    setIsLoading(true)
-    if (!user) return router.push("/")
-    getItemsByUserId(user.id)
-      .then((response) => {
-        setItems(response?.data)
-      })
-      .catch(() => setIsLoading(false))
-    getCategories()
-      .then((response) => {
-        setCategories(response.categories)
-        setIsLoading(false)
-      })
-      .catch(() => setIsLoading(false))
-  }, [])
-
   function goToNotifications() {
+    setIsLoading(true)
     router.push("/sellers")
   }
   
@@ -129,7 +138,7 @@ export default function Profile() {
         success: () => {
           setIsLoading(false)
           router.push("/login")
-          return "Dados alterados"
+          return "Anúncio publicado!"
         },
         error: () => {
           setIsLoading(false)
@@ -159,20 +168,27 @@ export default function Profile() {
     formData.append('price', itemInfo.price.toString());
     formData.append('category_id', itemInfo.category_id);
 
-    form.resetField('name')
-    form.resetField('description')
-    form.resetField('type')
-    form.resetField('price');
-    form.resetField('category_id')
-    form.resetField('images')
-    /*setIsLoading(true)
+    Array.from(itemInfo.images).forEach((file) => {
+      formData.append('file', file)
+    })
+
+    setIsLoading(true)
     toast.promise(
-      updateItem(item.id, itemFormat),
+      createItem(formData),
       {
         loading: "Salvando...",
         success: () => {
-          getItem(params.itemId)
-          setIsLoading(false)
+          getItemsByUserId(user.id)
+            .then((response) => {
+              setItems(response?.data)
+            })
+            .catch(() => setIsLoading(false))
+          getCategories()
+            .then((response) => {
+              setCategories(response.categories)
+              setIsLoading(false)
+            })
+            .catch(() => setIsLoading(false))
           return "Dados alterados"
         },
         error: () => {
@@ -180,7 +196,40 @@ export default function Profile() {
           return "Algo deu errado"
         }
       }
-    )*/
+    )
+
+    form.resetField('name')
+    form.resetField('description')
+    form.resetField('type', {
+      defaultValue: ''
+    })
+    form.resetField('price');
+    form.resetField('category_id', {
+      defaultValue: ''
+    })
+    form.resetField('images')
+  }
+
+  function getVariantStyleByUserRole() {
+    switch (user.role) {
+      case 0:
+        return 'liquidator'
+      case 1:
+        return 'seller'
+      default:
+        return 'destructive'
+    }
+  }
+
+  function getVariantStatusByRole() {
+    switch (user.role) {
+      case 0:
+        return 'Síndico'
+      case 1:
+        return 'Vendedor'
+      default:
+        return 'Aguardando aprovação'
+    }
   }
 
   return (
@@ -230,17 +279,17 @@ export default function Profile() {
             </form>
           </SheetContent>
         </Sheet>
-        <section className={cn("w-full relative flex justify-end items-center", [user.role !== 0 && 'hidden'])}>
-          <FiBell onClick={() => goToNotifications()} className="h-5 w-5 mr-2 cursor-pointer" />
+        <section className={cn("w-full relative flex justify-end items-center", [(!user || user.role !== 0) && 'hidden'])}>
+          <FiBell id="notification" onClick={() => goToNotifications()} className="h-5 w-5 mr-2 cursor-pointer" />
           
-          <div className={cn("bg-red-900 absolute top-1 right-1 text-[9px] flex justify-center items-center text-white rounded-full", [
+          <div onClick={() => goToNotifications()} className={cn("bg-red-900 cursor-pointer absolute top-1 right-1 text-[9px] flex justify-center items-center text-white rounded-full", [
             numberNotifications > 0 ? 'h-4 w-4' : 'h-2 w-2'
           ])}>
             {numberNotifications > 0 ? numberNotifications : ''}
           
           </div>
         </section>
-        <section className={cn("w-full relative flex justify-end items-center", [user.role !== 1 && 'hidden'])}>
+        <section className={cn("w-full relative flex justify-end items-center", [(!user || user.role !== 1) && 'hidden'])}>
         <Sheet>
             <SheetTrigger asChild>
               <Button className="flex gap-2">
@@ -278,7 +327,7 @@ export default function Profile() {
                       render={({ field }) => (
                         <FormItem>
                           <Label className="text-right">Tipo do anúncio</Label>
-                          <SelectGroup.Select onValueChange={field.onChange}>
+                          <SelectGroup.Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectGroup.SelectTrigger>
                                 <SelectGroup.SelectValue placeholder="Selecione o tipo do anúncio" />
@@ -305,7 +354,7 @@ export default function Profile() {
                       render={({ field }) => (
                         <FormItem>
                           <Label className="text-right">Categoria do anúncio</Label>
-                          <SelectGroup.Select onValueChange={field.onChange}>
+                          <SelectGroup.Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectGroup.SelectTrigger>
                                 <SelectGroup.SelectValue placeholder="Seleciona uma categoria" />
@@ -348,8 +397,10 @@ export default function Profile() {
           </Sheet>
         </section>
       </section>
-      <Badge className="mt-3 mx-5 text-white bg-green-600 hover:bg-green-600" variant="secondary">
-        { user.role === 0 ? 'Síndico': 'Vendedor'}
+      <Badge 
+        className="mt-3 mx-5 text-white" 
+        variant={getVariantStyleByUserRole()}>
+        { getVariantStatusByRole() }
       </Badge>
 
       <section className="px-5 pt-8">

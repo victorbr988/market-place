@@ -216,7 +216,7 @@ export default function Item({ params }: IItemProps) {
       <section className="px-5 md:px-20">
         <Accordion defaultValue={["details", "information"]} type="multiple" className="w-full">
           <AccordionItem className="border-gray-400" defaultValue="1" value="details">
-            <AccordionTrigger>Detalhes do item</AccordionTrigger>
+            <AccordionTrigger>Detalhes do anúncio</AccordionTrigger>
             <AccordionContent>
               { item.description }
             </AccordionContent>
@@ -256,7 +256,7 @@ export default function Item({ params }: IItemProps) {
           <p className="text-sm font-sans font-medium">Copiar link</p>
         </section>
 
-        <section className={cn("pt-3 flex gap-2 items-center", [user.id !== seller.id && 'hidden'])}>
+        <section className={cn("pt-3 flex gap-2 items-center", [(!user || user.id !== seller.id) && 'hidden'])}>
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" className="hover:bg-transparent"> <FiEdit2 /> </Button>
@@ -324,7 +324,7 @@ export default function Item({ params }: IItemProps) {
               </Form>
             </SheetContent>
           </Sheet>
-          <p className="text-sm font-sans font-medium">Editar item</p>
+          <p className="text-sm font-sans font-medium">Editar anúncio</p>
         </section>
       </section>
 
