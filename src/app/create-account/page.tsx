@@ -40,7 +40,7 @@ const formSchema = z.object({
 })
 
 export default function CreateAccount() {
-  const { isLoading, setIsLoading } = Context.loadingStore()
+  const { setIsLoading } = Context.loadingStore()
   const [isOpenModal, setIsOpenModal] = useState(false)
   const [condos, setCondos] = useState([])
   const [modalInputPassword, setModalInputPassword] = useState<string>("")
@@ -95,7 +95,7 @@ export default function CreateAccount() {
           router.push("/")
           return "Usuário criado com sucesso"
         },
-        error: "Algo deu errado"
+        error: (err) => err
       }
     )
   }
@@ -120,10 +120,9 @@ export default function CreateAccount() {
           form.resetField("condo_id", {
             defaultValue: ""
           })
-          router.push("/")
           return "Usuário criado com sucesso"
         },
-        error: "Algo deu errado"
+        error: (err) => err
       }
     )
   }
@@ -133,7 +132,9 @@ export default function CreateAccount() {
        <HeaderMenu customClasses="flex">
         <section className="flex justify-between items-center w-full">
           <p className="font-raleway font-medium text-xl">Criar conta</p>
-          <AvatarProfile />
+          <section>
+            <AvatarProfile />
+          </section>
         </section>
       </HeaderMenu>
 
@@ -171,7 +172,7 @@ export default function CreateAccount() {
                   <FormField
                       control={form.control}
                       name="condo_id"
-                      render={({ field }) => (
+                      render={({ field, formState }) => (
                         <FormItem>
                           <Label className="font-raleway font-medium text-lg">Condomínio</Label>
                           <SelectGroup.Select onValueChange={field.onChange} value={field.value}>
@@ -190,7 +191,7 @@ export default function CreateAccount() {
                               </SelectGroup.SelectGroup>
                             </SelectGroup.SelectContent>
                           </SelectGroup.Select>
-                          {form.formState.errors.condo_id && (<span className="text-red-500 p-1 text-sm">{ form.formState.errors.condo_id?.message }</span>) }
+                          {formState.errors.condo_id && (<span className="text-red-500 p-1 text-sm">{ formState.errors.condo_id?.message }</span>) }
                         </FormItem>
                       )}
                     />

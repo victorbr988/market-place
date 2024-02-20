@@ -10,6 +10,18 @@ export interface IUserData {
   phone: string;
 }
 
+export interface IUser {
+  id: string
+  username: string;
+  email: string;
+  phone: string;
+  condo_id: string;
+  role: number;
+  session: {
+    expiresIn: number
+  }
+}
+
 export interface IUserCreate extends IUserData {
   password: string;
   condo_id: string;
@@ -21,8 +33,9 @@ export interface IGetItemsQuery {
 }
 
 export interface IGetUsersQuery {
-  role: number,
-  condo_id: string
+  role: number;
+  condo_id: string;
+  search: string;
 }
 
 export interface IBaseGroupItems {

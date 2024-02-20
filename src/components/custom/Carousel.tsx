@@ -10,7 +10,7 @@ import { Fragment, useEffect, useState } from "react"
 import { CardItem } from "./CardItem"
 
 interface ICarouselItems {
-  items: IProdutos
+  items: any
 }
 export function CarouselItems({ items }: ICarouselItems) {
   const [itemsCategory, setItemsCategory] = useState<ICategories[]>([])

@@ -14,7 +14,7 @@ import { CardItem } from "@/components/custom/CardItem";
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Carousel, CarouselContent, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
-import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { FiBell, FiEdit2, FiPlus } from "react-icons/fi"
 import { Badge } from "@/components/ui/badge"
@@ -28,7 +28,7 @@ import { ViewControl } from "@/components/custom/ViewControl"
 import { Context } from "@/state/zustandContext"
 import { CardItemSkeleton } from "@/components/custom/skeleton/CardItemSkeleton"
 import { EmptyData } from "@/components/custom/EmptyData"
-import { ICategories, IItem } from "@/axios/types"
+import { ICategories, IGetUsersQuery, IItem } from "@/axios/types"
 import toast from "react-hot-toast"
 import { updateUser } from "@/axios/requests/user/updateUser"
 import { ProgressBar } from "@/components/custom/Progress"
@@ -37,6 +37,7 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form"
 import { getCategories } from "@/axios/requests/categories/getCategories"
 import { createItem } from "@/axios/requests/items/createItem"
 import { getUsers } from "@/axios/requests/user/getUsers"
+import { TooltipInfo } from "@/components/custom/Tooltip"
 
 const formSchema = z.object({
   name: z.string().min(1, {
@@ -74,12 +75,18 @@ const formCreateItem = z.object({
 })
 
 export default function Profile() {
+  const user = JSON.parse(localStorage.getItem("user") as string)
   const [numberNotifications, setNumberNotifications] = useState<number>(0)
   const { isLoading, setIsLoading } = Context.loadingStore()
   const [items, setItems] = useState([])
   const [categories, setCategories] = useState<ICategories[]>([])
+  const [filters, setFilters] = useState<IGetUsersQuery>({
+    search: "",
+    role: 2,
+    condo_id: user?.condo_id
+  })
   const router = useRouter()
-  const user = JSON.parse(localStorage.getItem("user") as string)
+ 
 
   if (!user) return router.push("/")
 
@@ -95,7 +102,7 @@ export default function Profile() {
         setCategories(response.categories)
       })
       .catch(() => setIsLoading(false))
-    getUsers({ role: 2, condo_id: user.condo_id})
+    getUsers(filters)
       .then((response) => {
         setNumberNotifications(response?.data.total)
         setIsLoading(false)
@@ -160,7 +167,7 @@ export default function Profile() {
     }
   };
 
-  function onCreateItem(itemInfo: z.infer<typeof formCreateItem>) {
+  function generateFormData(itemInfo: z.infer<typeof formCreateItem>) {
     const formData = new FormData();
     formData.append('name', itemInfo.name);
     formData.append('description', itemInfo.description);
@@ -172,9 +179,28 @@ export default function Profile() {
       formData.append('file', file)
     })
 
+    return formData
+  }
+
+  function resetCreationItemFields() {
+    form.resetField('name')
+    form.resetField('description')
+    form.resetField('type', {
+      defaultValue: ''
+    })
+    form.resetField('price');
+    form.resetField('category_id', {
+      defaultValue: ''
+    })
+    form.resetField('images')
+  }
+
+  function onCreateItem(itemInfo: z.infer<typeof formCreateItem>) {
+    const body = generateFormData(itemInfo)
+
     setIsLoading(true)
     toast.promise(
-      createItem(formData),
+      createItem(body),
       {
         loading: "Salvando...",
         success: () => {
@@ -187,27 +213,18 @@ export default function Profile() {
             .then((response) => {
               setCategories(response.categories)
               setIsLoading(false)
+              resetCreationItemFields()
             })
             .catch(() => setIsLoading(false))
           return "Dados alterados"
         },
         error: () => {
           setIsLoading(false)
+          resetCreationItemFields()
           return "Algo deu errado"
         }
       }
     )
-
-    form.resetField('name')
-    form.resetField('description')
-    form.resetField('type', {
-      defaultValue: ''
-    })
-    form.resetField('price');
-    form.resetField('category_id', {
-      defaultValue: ''
-    })
-    form.resetField('images')
   }
 
   function getVariantStyleByUserRole() {
@@ -252,7 +269,7 @@ export default function Profile() {
             <SheetContent side="mobileFull">
               <SheetHeader>
                 <SheetTitle>Editar perfil</SheetTitle>
-                <SheetDescription>
+                <SheetDescription className="text-red-900">
                   Para atualizar suas informações, você será redirecionado para que possa iniciar uma nova sessão
                 </SheetDescription>
               </SheetHeader>
@@ -292,16 +309,18 @@ export default function Profile() {
           
           </div>
         </section>
-        <section className={cn("w-full relative flex justify-end items-center", [(!user || user.role !== 1) && 'hidden'])}>
         
-        </section>
       </section>
       <section className="flex w-full justify-between items-center px-5 mt-3">
-      <Badge 
-        className="text-white" 
-        variant={getVariantStyleByUserRole()}>
-        { getVariantStatusByRole() }
-      </Badge>
+        <section className="flex items-center">
+          <Badge 
+            className="text-white" 
+            variant={ getVariantStyleByUserRole() }>
+            { getVariantStatusByRole() }
+          </Badge>
+          <TooltipInfo className={cn([(!user || user.role !== 2) && 'hidden'])} />
+        </section>
+      <section className={cn([(!user || user.role !== 1) && 'hidden'])}>
         <Sheet>
           <SheetTrigger asChild>
             <Button className="flex gap-2">
@@ -401,12 +420,16 @@ export default function Profile() {
                 </section>
 
                 <SheetFooter>
-                  <Button className="w-full sm:max-w-lg" type="submit">Salvar</Button>
+                  <SheetClose>
+                    <Button className="w-full sm:max-w-lg" type="submit">Salvar</Button>
+                  </SheetClose> 
                 </SheetFooter>
               </form>
             </Form>
           </SheetContent>
         </Sheet>
+      </section>
+        
       </section>
       <section className="px-5 pt-8">
         <Accordion defaultValue={["adverts", "myData"]} type="multiple" className="w-full">

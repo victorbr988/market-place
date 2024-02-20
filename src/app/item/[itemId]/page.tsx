@@ -170,7 +170,9 @@ export default function Item({ params }: IItemProps) {
       <HeaderMenu customClasses="flex">
         <section className="flex justify-between items-center w-full">
           <p className="font-raleway font-medium text-xl">Página inicial</p>
-          <AvatarProfile />
+          <section>
+            <AvatarProfile />
+          </section>
         </section>
       </HeaderMenu>
 

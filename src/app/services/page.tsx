@@ -41,7 +41,7 @@ export default function Home() {
 
   useEffect(() => {
     setIsLoading(true)
-    getAllItems(categoryName !== 'todos' ? filters : undefined )
+    getAllItems(filters)
   }, [categoryName])   
 
   function handleUpdateCategorySelected(event: any) {
@@ -53,7 +53,14 @@ export default function Home() {
           category: event.target.name
         }
       })
+      return;
     }
+    setFilters((prevState) => {
+      return {
+        ...prevState,
+        category: ""
+      }
+    })
   }
 
   function handleUpdateSearch(event: any) {
@@ -85,7 +92,9 @@ export default function Home() {
       <HeaderMenu customClasses="flex">
         <section className="flex justify-between items-center w-full">
           <p className="font-raleway font-medium text-xl">Serviços</p>
-          <AvatarProfile />
+          <section>
+            <AvatarProfile />
+          </section>
         </section>
       </HeaderMenu>
 

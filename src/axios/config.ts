@@ -11,10 +11,17 @@ instance.interceptors.response.use(async (response) => response, async (error: A
       if((error.response.data as any).error === "Passwords does not match") {
         localStorage.removeItem("user")
         return Promise.reject()
-      } 
+      }
       
       window.open("http://localhost:3000/login?session=expired")
       return Promise.reject()
+    }
+    if(error.response.status === 409) {
+      if((error.response.data as any).error === "Email already registered") {
+        localStorage.removeItem("user")
+        return Promise.reject("E-mail já registrado")
+      }
+      throw error
     }
   }
 })

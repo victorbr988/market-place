@@ -4,7 +4,7 @@ import { IGetUsersQuery } from "../../types"
 export async function getUsers(query?: IGetUsersQuery) {
   try {
     const users = await instance.get(
-      `/users?role=${query?.role || ''}&condo_id=${query?.condo_id || ''}`
+      `/users?role=${query?.role || ''}&condo_id=${query?.condo_id || ''}&search=${query?.search}`
     )
 
     return users

@@ -8,7 +8,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
 import { Fragment, useEffect } from "react"
 import { useForm } from "react-hook-form"
-import { FiLock } from "react-icons/fi"
 import { z } from "zod"
 import { AvatarProfile } from "@/components/custom/Avatar"
 import { Label } from "@/components/ui/label"
@@ -74,7 +73,6 @@ export default function Login() {
     getUserCredentialsGoogleAccount()
       .then((response: any) => {
         loginWithCredentials({email: response.email, password: ""})
-        router.push("/")
       })
       .catch((error) => console.log(error))
   }
@@ -92,7 +90,9 @@ export default function Login() {
       <HeaderMenu>
         <section className="flex justify-between items-center w-full">
           <p className="font-raleway font-medium text-xl">Login</p>
-          <AvatarProfile />
+          <section>
+            <AvatarProfile />
+          </section>
         </section>
       </HeaderMenu>
 
