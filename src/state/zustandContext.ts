@@ -8,7 +8,9 @@ interface Loading {
 }
 
 interface IUserStore {
-  user: IUser
+  user: IUser;
+  setUser: (user: IUser) => any
+  setUserDefault: () => any
 }
 
 const loadingStore = create<Loading>()((set) => ({
@@ -18,7 +20,7 @@ const loadingStore = create<Loading>()((set) => ({
 
 const userStore = create<IUserStore>()(
   persist(
-    (get, set) => ({
+    set => ({
       user: {
         id: "",
         username: "",
@@ -29,12 +31,27 @@ const userStore = create<IUserStore>()(
         session: {
           expiresIn: new Date(Date.now()).getMilliseconds()
         }
-      }
+      },
+      setUser: (userParam: IUser) => set(() => ({ user: userParam })),
+      setUserDefault: () => set(() => ({ 
+        user: {
+          id: "",
+          username: "",
+          condo_id: "",
+          email: "",
+          phone: "",
+          role: 0,
+          session: {
+            expiresIn: new Date(Date.now()).getMilliseconds()
+          }
+        }
+      }))
     }),
     { name: "user", skipHydration: true }
   )
 )
 
 export const Context = {
-  loadingStore
+  loadingStore,
+  userStore
 }

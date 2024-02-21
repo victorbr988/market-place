@@ -10,7 +10,7 @@ instance.interceptors.response.use(async (response) => response, async (error: A
     if(error.response.status === 401) {
       if((error.response.data as any).error === "Passwords does not match") {
         localStorage.removeItem("user")
-        return Promise.reject()
+        return Promise.reject("E-mail e/ou senha inválidos")
       }
       
       window.open("http://localhost:3000/login?session=expired")
@@ -23,5 +23,6 @@ instance.interceptors.response.use(async (response) => response, async (error: A
       }
       throw error
     }
+    throw error
   }
 })

@@ -3,6 +3,7 @@
 import { HeaderMenu } from "@/components/custom/Header"
 import { Button } from "@/components/ui/button"
 import { FcGoogle } from "react-icons/fc"
+import { FaFacebook } from "react-icons/fa"
 import { Input } from "@/components/ui/input"
 import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
@@ -16,6 +17,9 @@ import toast from "react-hot-toast"
 import { useRouter } from "next/navigation"
 import { getUserLogged } from "@/axios/requests/user/getLogged"
 import { getUserCredentialsGoogleAccount } from "@/firebase/Auth/google/userCredentials"
+import { Context } from "@/state/zustandContext"
+import { IUser } from "@/axios/types"
+import { getUserCredentialsFacebookAccount } from "@/firebase/Auth/facebook/userCredentials"
 
 const formSchema = z.object({
   email: z.string().min(1, {
@@ -27,6 +31,7 @@ const formSchema = z.object({
 })
 
 export default function Login() {
+  const { setUser } = Context.userStore()
   const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -47,24 +52,24 @@ export default function Login() {
   }, [])
 
   function loginWithCredentials(userCredentials: z.infer<typeof formSchema>) {
-    const toastId = toast.loading("Salvando...")
-    login(userCredentials)
-      .then(() => {
-        toast.dismiss(toastId)
-        toast.success("Sessão iniciada")
-        saveUserLoggedOnStorage()
-        router.push("/")
-      })
-      .catch((error) => {
-        toast.dismiss(toastId)
-        toast.error("E-mail e/ou senha inválidos") 
-      })
+    toast.promise(
+      login(userCredentials),
+      {
+        loading: "Salvando...",
+        success: () => {
+          saveUserLoggedOnStorage()
+          router.push("/")
+          return "Sessão iniciada"
+        },
+        error: (err) => err
+      }
+    )
   }
 
   function saveUserLoggedOnStorage() {
     getUserLogged()
       .then((response: any) => {
-      localStorage.setItem("user", JSON.stringify(response.data.user))
+      setUser(response.data.user as IUser)
       router.push("/")
     }).catch((error) => console.log(error))
   }
@@ -77,13 +82,13 @@ export default function Login() {
       .catch((error) => console.log(error))
   }
 
-  /*function onSigninWithFacebookAccount() {
+  function onSigninWithFacebookAccount() {
     getUserCredentialsFacebookAccount()
       .then((response) => {
         console.log(response)
       })
       .catch((error) => console.log(error))
-  }*/
+  }
 
   return (
     <Fragment>
@@ -126,6 +131,11 @@ export default function Login() {
             <Button onClick={onSigninWithGoogleAccount} type="button" variant="outline" className="flex items-center w-full gap-2 py-6 text-md">
               <FcGoogle className="h-8 w-8" /> 
               Entrar com google
+            </Button>
+
+            <Button onClick={onSigninWithFacebookAccount} type="button" variant="outline" className="flex items-center bg-blue-600 hover:bg-blue-600/90 w-full gap-3 text-white hover:text-white py-6 text-md mt-3">
+              <FaFacebook className="h-8 w-8 text-white" /> 
+              Entrar com Facebook
             </Button>
 
             <section className="flex gap-1 mt-8 justify-center">

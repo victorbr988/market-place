@@ -13,7 +13,7 @@ import {
 import { FiLogOut, FiMenu} from "react-icons/fi"
 import { Button } from "../ui/button"
 import Link from "next/link"
-import { ReactNode } from "react"
+import { ReactNode, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { Context } from "@/state/zustandContext"
 import { useRouter } from "next/navigation"
@@ -26,15 +26,21 @@ interface IHeaderMenu {
 
 export function HeaderMenu({ children, customClasses }: IHeaderMenu) {
   const setIsLoading = Context.loadingStore((state) => state.setIsLoading)
-  const user = JSON.parse(localStorage.getItem("user") as string)
+  const {user, setUserDefault} = Context.userStore()
   const router = useRouter()
+
+  const hasUserLogged = user.username.length === 0
+
+  useEffect(() => {
+    Context.userStore.persist.rehydrate()
+  }, [])
 
   function onDeleteSession() {
     deleteSession()
       .then(() => {
         localStorage.removeItem("user")
+        setUserDefault()
         router.push("/")
-        window.location.reload()
       })
   }
 
@@ -66,15 +72,15 @@ export function HeaderMenu({ children, customClasses }: IHeaderMenu) {
           <DropdownMenuSeparator />
 
           <DropdownMenuGroup>
-            <DropdownMenuItem className={cn("font-sans  text-md", [!user && 'hidden'])}>
+            <DropdownMenuItem className={cn("font-sans  text-md", [hasUserLogged && 'hidden'])}>
               <Link onClick={() => setIsLoading(true)} className="w-full" href="/profile">Meu perfil</Link>
             </DropdownMenuItem>
-            <DropdownMenuItem className={cn("font-sans  text-md", [user && 'hidden'])}>
+            <DropdownMenuItem className={cn("font-sans  text-md", [!hasUserLogged && 'hidden'])}>
               <Link onClick={() => setIsLoading(true)} className="w-full" href="/login">Fazer login</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className={
-              cn(!user && 'hidden')
+              cn(hasUserLogged && 'hidden')
             }>
               <Button onClick={onDeleteSession} className="w-full flex gap-2 justify-between h-8 text-red-800 font-sans" variant="outline">
                 Encerrar sessão

@@ -75,7 +75,7 @@ const formCreateItem = z.object({
 })
 
 export default function Profile() {
-  const user = JSON.parse(localStorage.getItem("user") as string)
+  const user = Context.userStore((state) => state.user)
   const [numberNotifications, setNumberNotifications] = useState<number>(0)
   const { isLoading, setIsLoading } = Context.loadingStore()
   const [items, setItems] = useState([])
@@ -86,12 +86,10 @@ export default function Profile() {
     condo_id: user?.condo_id
   })
   const router = useRouter()
- 
 
-  if (!user) return router.push("/")
+  if (user.username.length === 0) return router.push("/")
 
-  useEffect(() => {
-    setIsLoading(true)
+  function getSequentialItems() {
     getItemsByUserId(user.id)
       .then((response) => {
         setItems(response?.data)
@@ -108,6 +106,11 @@ export default function Profile() {
         setIsLoading(false)
       })
       .catch(() => setIsLoading(false))
+  }
+
+  useEffect(() => {
+    Context.userStore.persist.rehydrate()
+    getSequentialItems()
   }, [])
 
   const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof formSchema>>({

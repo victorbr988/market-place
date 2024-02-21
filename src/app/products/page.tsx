@@ -32,11 +32,25 @@ export default function Home() {
         setItems(response.data)
         setIsLoading(false)
       })
-      .catch((error) => console.log(error))
+      .catch((error) => {
+        setIsLoading(false)
+        setItems({
+          products: [] as any
+        } as IBaseGroupItems)
+        console.log(error)
+      })
   }
 
   useEffect(() => {
-    getCategories().then((response) => setCategories(response.categories))
+    getCategories()
+      .then((response) => setCategories(response.categories))
+      .catch((err: any) => {
+        setIsLoading(false)
+        setItems({
+          products: [] as any
+        } as IBaseGroupItems)
+        console.log(err)
+      })
   }, [])
 
   useEffect(() => {

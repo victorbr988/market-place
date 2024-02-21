@@ -11,7 +11,7 @@ import { Context } from "@/state/zustandContext";
 import { ItemsPageSkeleton } from "@/components/custom/skeleton/ItemsPageSkeleton";
 import { ViewControl } from "@/components/custom/ViewControl";
 import { getItems } from "@/axios/requests/items/getItems";
-import { IBaseGroupItems, ICategories, IGetItemsQuery } from "@/axios/types";
+import { IBaseGroupItems, ICategories, IGetItemsQuery, IProdutos } from "@/axios/types";
 import { getCategories } from "@/axios/requests/categories/getCategories";
 import { CategoriesSkeleton } from "@/components/custom/skeleton/categoriesPageSkeleton";
 import { EmptyData } from "@/components/custom/EmptyData";
@@ -32,16 +32,30 @@ export default function Home() {
         setItems(response.data)
         setIsLoading(false)
       })
-      .catch((error) => console.log(error))
+      .catch((error) => {
+        setIsLoading(false)
+        setItems({
+          products: [] as any
+        } as IBaseGroupItems)
+        console.log(error)
+      })
   }
 
   useEffect(() => {
-    getCategories().then((response) => setCategories(response.categories))
+    getCategories()
+      .then((response) => setCategories(response.categories))
+      .catch((err: any) => {
+        setIsLoading(false)
+        setItems({
+          products: [] as any
+        } as IBaseGroupItems)
+        console.log(err)
+      })
   }, [])
 
   useEffect(() => {
     setIsLoading(true)
-    getAllItems(filters )
+    getAllItems(filters)
   }, [categoryName])   
 
   function handleUpdateCategorySelected(event: any) {

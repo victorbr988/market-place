@@ -6,7 +6,7 @@ import { auth, provider } from "@/firebase/Auth/facebook/auth";
 export async function getUserCredentialsFacebookAccount() {
   try { 
     const userCredential = await signInWithPopup(auth, provider)
-    return userCredential.user
+    return userCredential
   } catch(err: unknown) {
 
     if(err instanceof FirebaseError) {
