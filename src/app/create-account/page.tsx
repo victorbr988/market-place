@@ -239,48 +239,6 @@ export default function CreateAccount() {
                       )}
                     />
                 </section>
-                <section className="flex gap-2">
-                  <span className="text-sm">Não encontrou seu condomínio?</span>
-                  <Sheet>
-                    <SheetTrigger asChild>
-                      <p className="text-sm text-gray-600 underline cursor-pointer">Cadastre aqui</p>
-                    </SheetTrigger>
-                    <SheetContent side="mobileFull">
-                      <SheetHeader>
-                        <SheetTitle>Criar condomínio</SheetTitle>
-                        <SheetDescription>
-                          Se você alterar as informações presentes atualmente isso terá impacto na visualização
-                        </SheetDescription>
-                      </SheetHeader>
-                      <form onSubmit={handleSubmit(onCreateCondo)} className="py-4 flex flex-col gap-4">
-                        <section>
-                          <Label className="text-right">Nome</Label>
-                          <Input autoComplete="username" className="col-span-3" placeholder="Nome do condomínio" type="text" {...register("name")} />
-                          { errors.name && (<span className="text-red-500 px-1 py-4 text-[12px]">{errors.name?.message}</span>) }
-                        </section>
-
-                        <section>
-                          <Label className="text-right">Descrição</Label>
-                          <Textarea maxLength={250} placeholder="Descrição aqui..." {...register("description")} />
-                          <ProgressBar className="mt-1" currentProgress={description?.length * 100 / 250 || 0 } maxProgress={250} />
-                          { errors.description && (<span className="text-red-500 px-1 py-4 text-[12px]">{errors.description?.message}</span>) }
-                        </section>
-
-                        <section>
-                          <Label className="text-right">CEP</Label>
-                          <Input className="col-span-3" placeholder="55010230" type="number" {...register("cep")} />
-                          { errors.cep && (<span className="text-red-500 px-1 py-4 text-[12px]">{errors.cep?.message}</span>) }
-                        </section>
-
-                        <SheetFooter>
-                          <Button type="submit">Cadastrar condomínio</Button>
-                        </SheetFooter>
-                      </form>
-                    </SheetContent>
-                  </Sheet>
-                  
-                </section>
-                
               </section>
 
               <Button className="w-full mt-4 h-12 text-md" type="submit">Cadastrar</Button>
