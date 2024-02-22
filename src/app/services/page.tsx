@@ -42,7 +42,7 @@ export default function Home() {
   }
 
   useEffect(() => {
-    getCategories()
+    getCategories(2)
       .then((response) => setCategories(response.categories))
       .catch((err: any) => {
         setIsLoading(false)

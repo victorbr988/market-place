@@ -84,8 +84,8 @@ export default function Login() {
 
   function onSigninWithFacebookAccount() {
     getUserCredentialsFacebookAccount()
-      .then((response) => {
-        console.log(response)
+      .then((response: any) => {
+        loginWithCredentials({email: response.email, password: ""})
       })
       .catch((error) => console.log(error))
   }

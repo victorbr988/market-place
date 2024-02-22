@@ -18,7 +18,8 @@ import { EmptyData } from "@/components/custom/EmptyData";
 
 export default function Home() {
   const { isLoading, setIsLoading } = Context.loadingStore()
-  const [items, setItems] = useState<IBaseGroupItems>({} as IBaseGroupItems)
+  const [items, setItems] = useState<IBaseGroupItems | any>({})
+  const [tabs, setTabs] = useState<string[]>([])
   const [categoryName, setCategory] = useState<string>("todos")
   const [filters, setFilters] = useState<IGetItemsQuery>({
     search: '',
@@ -30,6 +31,7 @@ export default function Home() {
     getItems(filter)
       .then((response: any) => {
         setItems(response.data)
+        setTabs(Object.keys(response.data))
         setIsLoading(false)
       })
       .catch((error) => {
@@ -98,7 +100,7 @@ export default function Home() {
   }
 
   function countRegistersFromAPI() {
-    return [items.products].flat().length
+    return [items.products, items.services].flat().length
   }
 
   return (
@@ -162,7 +164,9 @@ export default function Home() {
             <EmptyData customMessage="Não foram encontrados registros" />
           }
           PageContent={
-            <CarouselItems items={items.products} />
+            <Fragment>
+              { tabs.map(tab => <CarouselItems key={tab} items={items[tab]} />) }
+            </Fragment>
           }
           Fallback={
             <ItemsPageSkeleton />

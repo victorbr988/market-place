@@ -23,6 +23,11 @@ instance.interceptors.response.use(async (response) => response, async (error: A
       }
       throw error
     }
+    if(error.response.status === 500) {
+      return Promise.reject("Erro interno do servidor")
+    }
     throw error
   }
 })
+
+//https://nominatim.openstreetmap.org/search.php?q=Rua%20xingu%20Caruaru&polygon_geojson=1&accept-language=Brasil&countrycodes=BR&format=jsonv2
