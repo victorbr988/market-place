@@ -53,27 +53,6 @@ const formSchema = z.object({
   }).optional() 
 })
 
-const formCreateItem = z.object({
-  name: z.string().min(1, {
-    message: "O nome é obrigatório"
-  }),
-  description: z.string().min(1, {
-    message: "A descrição é obrigatória"
-  }).max(250, {
-    message: "Máximo de 250 carácteres"
-  }),
-  type: z.coerce.string().min(1, {
-    message: "Tipo de anúncio é obrigatório"
-  }),
-  price: z.coerce.number({
-    invalid_type_error: 'Use apenas números com pontos ao invés de vírgulas para casas decimais'
-  }).positive('O valor do item deve ser maior que 0'),
-  category_id: z.string().min(1, {
-    message: "Categoria é obrigatória"
-  }),
-  images: z.instanceof(FileList)
-})
-
 export default function Profile() {
   const user = Context.userStore((state) => state.user)
   const [numberNotifications, setNumberNotifications] = useState<number>(0)
@@ -87,9 +66,34 @@ export default function Profile() {
   })
   const router = useRouter()
 
-  if (user.username.length === 0) return router.push("/")
+  const formCreateItem = z.object({
+    name: z.string().min(1, {
+      message: "O nome é obrigatório"
+    }),
+    description: z.string().min(1, {
+      message: "A descrição é obrigatória"
+    }).max(250, {
+      message: "Máximo de 250 carácteres"
+    }),
+    type: z.coerce.string().min(1, {
+      message: "Tipo de anúncio é obrigatório"
+    }),
+    price: z.coerce.number({
+      invalid_type_error: 'Use apenas números com pontos ao invés de vírgulas para casas decimais'
+    }).positive('O valor do item deve ser maior que 0'),
+    category_id: z.string().min(1, {
+      message: "Categoria é obrigatória"
+    }),
+    images: typeof window !== 'undefined' ? z.instanceof(FileList) : z.any()
+  })
+
+  useEffect(() => {
+    Context.userStore.persist.rehydrate()
+    getSequentialItems()
+  }, [])
 
   function getSequentialItems() {
+    if (user.username.length === 0) return router.push("/")
     getItemsByUserId(user.id)
       .then((response) => {
         setItems(response?.data)
@@ -107,11 +111,6 @@ export default function Profile() {
       })
       .catch(() => setIsLoading(false))
   }
-
-  useEffect(() => {
-    Context.userStore.persist.rehydrate()
-    getSequentialItems()
-  }, [])
 
   const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -178,7 +177,7 @@ export default function Profile() {
     formData.append('price', itemInfo.price.toString());
     formData.append('category_id', itemInfo.category_id);
 
-    Array.from(itemInfo.images).forEach((file) => {
+    Array.from(itemInfo.images).forEach((file: any) => {
       formData.append('file', file)
     })
 
@@ -419,7 +418,7 @@ export default function Profile() {
                 <section>
                   <Label className="text-right">Imagens</Label>
                   <Input className="col-span-3" type="file" multiple { ...form.register("images") } onChange={(event) => handleFileChange(event)} />
-                  { form.formState.errors.images && (<span className="text-red-500 px-1 py-4 text-[12px]">{form.formState.errors.images?.message}</span>) }
+                  { form.formState.errors.images && (<span className="text-red-500 px-1 py-4 text-[12px]">{form.formState.errors.images?.message as any}</span>) }
                 </section>
 
                 <SheetFooter>

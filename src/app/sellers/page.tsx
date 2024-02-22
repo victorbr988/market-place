@@ -19,10 +19,9 @@ import { EmptyData } from "@/components/custom/EmptyData"
 import { useRouter } from "next/navigation"
 import { updateUser } from "@/axios/requests/user/updateUser"
 import toast from "react-hot-toast"
-import { error } from "console"
 
 export default function Sellers() {
-  const user = JSON.parse(localStorage.getItem("user") as string)
+  const { user } = Context.userStore()
   const [users, setUsers] = useState<any>({})
   const { isLoading, setIsLoading } = Context.loadingStore()
   const [filters, setFilters] = useState<IGetUsersQuery>({
@@ -31,8 +30,6 @@ export default function Sellers() {
     condo_id: user?.condo_id
   })
   const router = useRouter()
-
-  if (!user || user.role !== 0) return router.push("/")
 
   useEffect(() => {
     setIsLoading(true)
@@ -43,6 +40,8 @@ export default function Sellers() {
       })
       .catch(() => setIsLoading(false))
   }, [filters.role])
+
+  if (!user || user.role !== 0) return router.push("/")
 
   function onActionInit(userId: string) {
     toast.promise(

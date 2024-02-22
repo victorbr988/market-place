@@ -12,7 +12,7 @@ export function TableControlSellers({ collumns, children }: ITableControlSellers
       <TableGroup.TableHeader>
         <TableGroup.TableRow>
           {collumns.map((collumn) => (
-              <TableGroup.TableHead>{ collumn }</TableGroup.TableHead>
+              <TableGroup.TableHead key={collumn}>{ collumn }</TableGroup.TableHead>
           ))}
         </TableGroup.TableRow>
       </TableGroup.TableHeader>
