@@ -100,7 +100,7 @@ export default function Home() {
   }
 
   function countRegistersFromAPI() {
-    return [items.products, items.services].flat().length
+    return [items.products, items.services].flat().filter(item => item).length
   }
 
   return (
