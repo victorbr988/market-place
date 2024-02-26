@@ -18,7 +18,7 @@ import { getUserCredentialsGoogleAccount } from "@/firebase/Auth/google/userCred
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { createUser } from "@/axios/requests/user/createUser";
 import toast from "react-hot-toast";
-import { IUserCreate, IUserData } from "@/axios/types";
+import { IUser, IUserCreate, IUserData, IUserLogin } from "@/axios/types";
 import { useRouter } from "next/navigation";
 import { getUserCredentialsFacebookAccount } from "@/firebase/Auth/facebook/userCredentials";
 import { FaFacebook } from "react-icons/fa";
@@ -26,6 +26,8 @@ import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetT
 import { ProgressBar } from "@/components/custom/Progress";
 import { Textarea } from "@/components/ui/textarea";
 import { getStreetByCep } from "@/utils/getStreetByCep";
+import { login } from "@/axios/requests/user/login";
+import { getUserLogged } from "@/axios/requests/user/getLogged";
 
 const formSchema = z.object({
   email: z.string().min(1, {
@@ -59,6 +61,7 @@ const createCondoSchema = z.object({
 
 export default function CreateAccount() {
   const { setIsLoading } = Context.loadingStore()
+  const { setUser } = Context.userStore()
   const [isOpenModal, setIsOpenModal] = useState(false)
   const [condos, setCondos] = useState([])
   const [modalInputPassword, setModalInputPassword] = useState<string>("")
@@ -99,6 +102,29 @@ export default function CreateAccount() {
       })
   }, [])
 
+  function loginWithCredentials(userCredentials: IUserLogin) {
+    toast.promise(
+      login(userCredentials),
+      {
+        loading: "Salvando...",
+        success: () => {
+          saveUserLoggedOnStorage()
+          router.push("/")
+          return "Sessão iniciada"
+        },
+        error: (err) => err
+      }
+    )
+  }
+
+  function saveUserLoggedOnStorage() {
+    getUserLogged()
+      .then((response: any) => {
+      setUser(response.data.user as IUser)
+      router.push("/")
+    }).catch((error) => console.log(error))
+  }
+
   function onCreateAccoutWithGoogle() {
     getUserCredentialsGoogleAccount()
       .then((response: any) => {
@@ -111,7 +137,6 @@ export default function CreateAccount() {
   function onCreateAccoutWithFacebook() {
     getUserCredentialsFacebookAccount()
       .then((response: any) => {
-        setUserCredentials(response)
         setIsOpenModal(true)
       })
       .catch((error) => console.log(error))
@@ -154,6 +179,11 @@ export default function CreateAccount() {
           setIsLoading(false)
           setModalInputPassword("")
           setIsOpenModal(false)
+          loginWithCredentials({
+            email: userData.email,
+            password: userData.password
+          })
+          
           form.resetField("condo_id", {
             defaultValue: ""
           })
