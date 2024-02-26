@@ -26,7 +26,12 @@ instance.interceptors.response.use(async (response) => response, async (error: A
     if(error.response.status === 500) {
       return Promise.reject("Erro interno do servidor")
     }
-    throw error
+
+    if(error.response.status !== 500) {
+      return Promise.reject("Erro interno do servidor")
+    }
+    
+    throw Promise.reject("Algo deu errado")
   }
 })
 
