@@ -109,7 +109,7 @@ export default function CreateAccount() {
         loading: "Salvando...",
         success: () => {
           saveUserLoggedOnStorage()
-          router.push("/")
+  
           return "Sessão iniciada"
         },
         error: (err) => err
@@ -121,7 +121,6 @@ export default function CreateAccount() {
     getUserLogged()
       .then((response: any) => {
       setUser(response.data.user as IUser)
-      router.push("/")
     }).catch((error) => console.log(error))
   }
 
@@ -137,6 +136,7 @@ export default function CreateAccount() {
   function onCreateAccoutWithFacebook() {
     getUserCredentialsFacebookAccount()
       .then((response: any) => {
+        setUserCredentials(response)
         setIsOpenModal(true)
       })
       .catch((error) => console.log(error))
@@ -154,7 +154,6 @@ export default function CreateAccount() {
           form.resetField("condo_id", {
             defaultValue: ""
           })
-          router.push("/")
           return "Usuário criado com sucesso"
         },
         error: (err) => err
@@ -171,10 +170,12 @@ export default function CreateAccount() {
       condo_id: condoField
     }
 
+    console.log(userData)
+
     toast.promise(
       createUser(userData),
       {
-        loading: "Criando...",
+        loading: "Confirmando...",
         success: () => {
           setIsLoading(false)
           setModalInputPassword("")

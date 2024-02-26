@@ -7,14 +7,20 @@ export const instance = axios.create({
 
 instance.interceptors.response.use(async (response) => response, async (error: AxiosError) => {
   if(error.response) {
+    if(error.response.status === 400) {
+      return Promise.reject("Algo deu errado")
+    }
     if(error.response.status === 401) {
       if((error.response.data as any).error === "Passwords does not match") {
         localStorage.removeItem("user")
         return Promise.reject("E-mail e/ou senha inválidos")
       }
       
-      window.open("http://localhost:3000/login?session=expired")
+      window.open(`${window.location.href.split('/')[0]}/login?session=expired`)
       return Promise.reject()
+    }
+    if(error.response.status === 404) {
+      return Promise.reject("Recurso não encontrado")
     }
     if(error.response.status === 409) {
       if((error.response.data as any).error === "Email already registered") {
@@ -26,6 +32,7 @@ instance.interceptors.response.use(async (response) => response, async (error: A
     if(error.response.status === 500) {
       return Promise.reject("Erro interno do servidor")
     }
+    
     throw error
   }
 })
