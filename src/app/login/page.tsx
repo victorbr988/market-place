@@ -69,9 +69,10 @@ export default function Login() {
   function saveUserLoggedOnStorage() {
     getUserLogged()
       .then((response: any) => {
-      setUser(response.data.user as IUser)
-      router.push("/")
-    }).catch((error) => console.log(error))
+        setUser(response.data.user as IUser)
+        router.push("/")
+      })
+      .catch((error) => console.log(error))
   }
 
   function onSigninWithGoogleAccount() {
@@ -85,7 +86,7 @@ export default function Login() {
   function onSigninWithFacebookAccount() {
     getUserCredentialsFacebookAccount()
       .then((response: any) => {
-        loginWithCredentials({email: response.email, password: ""})
+        loginWithCredentials({ email: response.email, password: ""})
       })
       .catch((error) => console.log(error))
   }
