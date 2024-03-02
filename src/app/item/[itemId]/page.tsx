@@ -62,12 +62,13 @@ const formSchema = z.object({
 export default function Item({ params }: IItemProps) {
   const [api, setApi] = useState<CarouselApi>()
   const { isLoading, setIsLoading } = Context.loadingStore()
+  const { user } = Context.userStore()
   const [current, setCurrent] = useState(0)
   const [count, setCount] = useState(0)
   const [item, setItem] = useState<IItem>({} as IItem)
   const [seller, setSeller] = useState<ISeller>({} as ISeller)
   const uploadBaseRoute = process.env.NEXT_PUBLIC_UPLOAD_ORIGIN
-  const user = JSON.parse(localStorage.getItem("user") as string)
+  
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -104,6 +105,7 @@ export default function Item({ params }: IItemProps) {
         setIsLoading(false)
       })
   }
+  console.log({user: user.id, seller: seller.id})
 
   function getUser(id: string) {
     getUserById(id as string)
@@ -258,7 +260,7 @@ export default function Item({ params }: IItemProps) {
           <p className="text-sm font-sans font-medium">Copiar link</p>
         </section>
 
-        <section className={cn("pt-3 flex gap-2 items-center", [(!user || user.id !== seller.id) && 'hidden'])}>
+        <section className={cn("pt-3 flex gap-2 items-center", [(user.id !== seller.id) && 'hidden'])}>
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" className="hover:bg-transparent"> <FiEdit2 /> </Button>
