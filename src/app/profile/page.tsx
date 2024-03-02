@@ -47,7 +47,7 @@ const formSchema = z.object({
     message: "O e-mail é obrigatório"
   }).email('formato de e-mail inválido'),
   phone: z.string().min(11, {
-    message: "Formato inválido"
+    message: "O Telefone é obrigatório"
   }).max(11, {
     message: "Formato inválido"
   }).optional() 
@@ -87,21 +87,35 @@ export default function Profile() {
     images: typeof window !== 'undefined' ? z.instanceof(FileList) : z.any()
   })
 
+  const form = useForm<z.infer<typeof formCreateItem>>({
+    resolver: zodResolver(formCreateItem),
+    defaultValues: {
+      price: 0,
+      category_id: '',
+      type: '',
+      description: '',
+    }
+  })
+  const typeCategory = form.watch("type")
+
   useEffect(() => {
     Context.userStore.persist.rehydrate()
     getSequentialItems()
   }, [])
+
+  useEffect(() => {
+    getCategories(Number(typeCategory))
+      .then((response) => {
+        setCategories(response.categories)
+      })
+      .catch(() => setIsLoading(false))
+  }, [typeCategory])
 
   function getSequentialItems() {
     if (user.username.length === 0) return router.push("/")
     getItemsByUserId(user.id)
       .then((response) => {
         setItems(response?.data)
-      })
-      .catch(() => setIsLoading(false))
-    getCategories()
-      .then((response) => {
-        setCategories(response.categories)
       })
       .catch(() => setIsLoading(false))
     getUsers(filters)
@@ -115,22 +129,11 @@ export default function Profile() {
   const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: user.username,
-      email: user.email,
-      phone: user.phone
+      name: user.username.trim(),
+      email: user.email.trim(),
+      phone: user.phone.trim()
     }
   })
-
-  const form = useForm<z.infer<typeof formCreateItem>>({
-    resolver: zodResolver(formCreateItem),
-    defaultValues: {
-      price: 0,
-      category_id: '',
-      type: '',
-      description: '',
-    }
-  })
-
   const description = form.watch("description")
 
   function goToNotifications() {
@@ -290,7 +293,7 @@ export default function Profile() {
 
                 <section>
                   <Label className="text-right">Telefone</Label>
-                  <Input autoComplete="username" className="col-span-3" placeholder="********" type="text" {...register("phone")} />
+                  <Input autoComplete="username" className="col-span-3" placeholder="12556644787" type="text" {...register("phone")} />
                   { errors.phone && (<span className="text-red-500 px-1 py-4 text-[12px]">{errors.phone?.message}</span>) }
                 </section>
 
@@ -422,9 +425,7 @@ export default function Profile() {
                 </section>
 
                 <SheetFooter>
-                  <SheetClose>
-                    <Button className="w-full sm:max-w-lg" type="submit">Salvar</Button>
-                  </SheetClose> 
+                  <Button className="w-full sm:max-w-lg" type="submit">Salvar</Button>
                 </SheetFooter>
               </form>
             </Form>

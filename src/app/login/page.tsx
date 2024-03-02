@@ -52,18 +52,12 @@ export default function Login() {
   }, [])
 
   function loginWithCredentials(userCredentials: z.infer<typeof formSchema>) {
-    toast.promise(
-      login(userCredentials),
-      {
-        loading: "Salvando...",
-        success: () => {
-          saveUserLoggedOnStorage()
-          router.push("/")
-          return "Sessão iniciada"
-        },
-        error: (err) => err
-      }
-    )
+    login(userCredentials)
+      .then(() => saveUserLoggedOnStorage())
+      .catch((error) => {
+        toast.error(error)
+        console.log(error)
+      })
   }
 
   function saveUserLoggedOnStorage() {
@@ -73,6 +67,19 @@ export default function Login() {
         router.push("/")
       })
       .catch((error) => console.log(error))
+
+      toast.promise(
+        getUserLogged(),
+        {
+          loading: "Salvando...",
+          success: (response) => {
+            setUser(response.data.user as IUser)
+            router.push("/")
+            return "Sessão iniciada"
+          },
+          error: (err) => err?.message ? err.message : err
+        }
+      )
   }
 
   function onSigninWithGoogleAccount() {
